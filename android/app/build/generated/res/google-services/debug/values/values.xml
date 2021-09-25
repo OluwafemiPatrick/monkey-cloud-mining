@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">710056319927-ietg2u9gv9urmla5avnnvspuvh04auvo.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">710056319927</string>
+    <string name="google_api_key" translatable="false">AIzaSyAjk0sYlYyOTGM9UpbwWMeWoe3qcxavDwo</string>
+    <string name="google_app_id" translatable="false">1:710056319927:android:0219b6a5b0af12ef292632</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyAjk0sYlYyOTGM9UpbwWMeWoe3qcxavDwo</string>
+    <string name="google_storage_bucket" translatable="false">monkeycloudmining-3ea32.appspot.com</string>
+    <string name="project_id" translatable="false">monkeycloudmining-3ea32</string>
+</resources>
