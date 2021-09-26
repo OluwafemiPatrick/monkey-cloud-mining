@@ -11,7 +11,6 @@ import 'package:mcm/mcm/game/home_chart.dart';
 import 'package:mcm/mcm/home/home_home.dart';
 import 'package:mcm/mcm/log/home_log.dart';
 import 'package:mcm/mcm/menu/home_menu.dart';
-import 'package:mcm/shared/common_methods.dart';
 import 'package:mcm/shared/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -199,7 +198,7 @@ class _HomePageState extends State<HomePage> {
 
   Future _checkEmailVerification() async {
     User userVer = FirebaseAuth.instance.currentUser;
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
 
     String email = prefs.getString("userEmail");
     await userVer.reload();

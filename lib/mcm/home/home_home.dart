@@ -8,6 +8,7 @@ import 'package:mcm/mcm/home/mok_token_earning.dart';
 import 'package:mcm/mcm/home/mok_token_earning.dart';
 import 'package:mcm/mcm/home/stake_mok_token.dart';
 import 'package:mcm/mcm/home/withdraw_token.dart';
+import 'package:mcm/services/adhelper.dart';
 import 'package:mcm/shared/common_methods.dart';
 import 'package:mcm/shared/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,9 +43,8 @@ class _HomeHomeState extends State<HomeHome> {
     super.dispose();
   }
 
-
   final BannerAd myBanner = BannerAd(
-    adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+    adUnitId: AdHelper.bannerAdUnitId,
     size: AdSize.fullBanner,
     request: AdRequest(),
     listener: AdListener(),
@@ -476,6 +476,10 @@ class _HomeHomeState extends State<HomeHome> {
           prefs.setInt("last_login", currentTime);
           print ('METHOD SEVEN 7 CALLED');
         }
+      }
+      if (lastLogin == null || lastLogin == 0) {
+        _dailyCheckIn(context, true, 1, 100);
+        prefs.setInt("last_login", currentTime);
       }
       else {
         // add 0 MOK

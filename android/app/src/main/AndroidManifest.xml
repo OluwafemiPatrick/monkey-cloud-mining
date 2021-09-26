@@ -8,6 +8,12 @@
            android:name="com.google.android.gms.ads.APPLICATION_ID"
            android:value="ca-app-pub-3940256099942544~3347511713"/>
 
+       <!-- android live key  ca-app-pub-6758923381502381~9432862929
+            info.plist key ca-app-pub-6758923381502381~8277736926
+
+            android test key  ca-app-pub-3940256099942544~3347511713
+       /-->
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

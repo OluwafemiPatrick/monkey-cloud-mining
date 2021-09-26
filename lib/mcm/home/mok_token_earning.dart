@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:mcm/services/adhelper.dart';
 import 'package:mcm/shared/common_methods.dart';
 import 'package:mcm/shared/constants.dart';
 import 'package:mcm/shared/getters_and_setters.dart';
@@ -64,7 +65,7 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
 
 
   final BannerAd myBanner = BannerAd(
-    adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+    adUnitId: AdHelper.bannerAdUnitId,
     size: AdSize.fullBanner,
     request: AdRequest(),
     listener: AdListener(),
