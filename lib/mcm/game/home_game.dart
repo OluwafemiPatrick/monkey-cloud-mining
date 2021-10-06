@@ -16,14 +16,23 @@ class _HomeGameState extends State<HomeGame> {
             mcmLogo(),
             Divider(color: colorBlue, thickness: 0.5, height: 1.0),
             Expanded(
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(15.0, 0.0, 15.0, 0.0),
-                  child: Text('COMING SOON',
-                    style: TextStyle(fontSize: 40.0, color: colorRed, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
-                    textAlign: TextAlign.center,
+              child: Stack(
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child: Image.asset(
+                        'assets/images/game_one.png',
+                      fit: BoxFit.fill,
+                    ),
                   ),
-                ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Text('Coming Soon',
+                      style: TextStyle(fontSize: 20.0, color: colorBgMain, fontWeight: FontWeight.bold),
+                    ),
+                  )
+                ],
               ),
             )
           ] ),

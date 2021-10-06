@@ -102,6 +102,7 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
           child: Column(
               children: [
                 Divider(color: colorBlue, thickness: 0.5, height: 1.0),
+                SizedBox(height: 20.0,),
                 accountCounter(),
                 Expanded(child: Container(
                   alignment: Alignment.center,
@@ -109,7 +110,7 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
                   width: myBanner.size.width.toDouble(),
                   height: myBanner.size.height.toDouble(),
                 )),
-                stopMining(),
+                // stopMining(),
               ] ),
         )
     );

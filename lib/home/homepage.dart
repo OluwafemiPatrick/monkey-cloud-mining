@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:mcm/home/email_verification.dart';
-import 'package:mcm/mcm/game/home_chart.dart';
+import 'package:mcm/mcm/game/home_game.dart';
 import 'package:mcm/mcm/home/home_home.dart';
 import 'package:mcm/mcm/log/home_log.dart';
 import 'package:mcm/mcm/menu/home_menu.dart';
