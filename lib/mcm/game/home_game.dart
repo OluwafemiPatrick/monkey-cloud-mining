@@ -11,31 +11,27 @@ class _HomeGameState extends State<HomeGame> {
   Widget build(BuildContext context) {
     return Container(
       color: colorBgMain,
-      child: Column(
-          children: [
-            mcmLogo(),
-            Divider(color: colorBlue, thickness: 0.5, height: 1.0),
-            Expanded(
-              child: Stack(
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
-                    child: Image.asset(
-                        'assets/images/game_one.png',
-                      fit: BoxFit.fill,
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Text('Coming Soon',
-                      style: TextStyle(fontSize: 20.0, color: colorBgMain, fontWeight: FontWeight.bold),
-                    ),
-                  )
-                ],
+      child: Stack(
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: Image.asset(
+                'assets/images/game_one.png',
+              fit: BoxFit.fill,
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Text('Coming Soon',
+                style: TextStyle(fontSize: 20.0, color: colorBgMain, fontWeight: FontWeight.bold),
               ),
-            )
-          ] ),
+            ),
+          )
+        ],
+      ),
     );
   }
 

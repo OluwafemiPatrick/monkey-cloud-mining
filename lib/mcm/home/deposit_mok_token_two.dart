@@ -53,12 +53,10 @@ class _DepositMokTokenTwoState extends State<DepositMokTokenTwo> {
           height: MediaQuery.of(context).size.height,
           padding: EdgeInsets.only(bottom: 10.0),
           color: colorBgMain,
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
+          child: ListView(
               children: [
                 Divider(color: colorBlue, thickness: 0.5, height: 1.0),
-                Spacer(flex: 1,),
+                SizedBox(height: 20.0),
                 Text("Scan the code below to make a payment of $amount MOK.",
                   style: TextStyle(fontSize: 13.5, color: colorWhite),
                   textAlign: TextAlign.center,
@@ -70,11 +68,11 @@ class _DepositMokTokenTwoState extends State<DepositMokTokenTwo> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                Spacer(flex: 2),
+                SizedBox(height: 40.0),
                 Container(
-                  height: 350.0,
-                  width: MediaQuery.of(context).size.width * 0.7,
+                  height: 300.0,
                   padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
+                  margin: EdgeInsets.symmetric(horizontal: 40.0),
                   decoration: BoxDecoration(
                     color: colorWhite,
                     borderRadius: BorderRadius.circular(12.0)
@@ -113,7 +111,7 @@ class _DepositMokTokenTwoState extends State<DepositMokTokenTwo> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                Spacer(flex: 2),
+                SizedBox(height: 50.0),
                 verifyTransactionButton(),
               ] ),
         )
@@ -125,6 +123,7 @@ class _DepositMokTokenTwoState extends State<DepositMokTokenTwo> {
     return Container(
       height: 50.0,
       width: MediaQuery.of(context).size.width * 0.8,
+      margin: EdgeInsets.symmetric(horizontal: 30.0),
       child: _isLoading ? SpinnerMain() : ElevatedButton(
         child: Text('Confirm Transaction', style: TextStyle(
             color: colorWhite, fontSize: 16.0),),

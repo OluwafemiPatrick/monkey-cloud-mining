@@ -8,14 +8,16 @@ import 'package:mcm/mcm/home/stake_mok_token.dart';
 import 'package:mcm/mcm/menu/about_mcm.dart';
 import 'package:mcm/mcm/menu/calculator.dart';
 import 'package:mcm/mcm/menu/faq.dart';
-import 'package:mcm/mcm/menu/introduction.dart';
 import 'package:mcm/services/auth.dart';
 import 'package:mcm/shared/constants.dart';
-import 'package:mcm/shared/toast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 
 class HomeMenu extends StatefulWidget {
+
+  final String referralCode;
+  HomeMenu(this.referralCode);
+
   @override
   _HomeMenuState createState() => _HomeMenuState();
 }
@@ -26,10 +28,20 @@ class _HomeMenuState extends State<HomeMenu> {
   final String _urlMCM = 'https://www.monkeycloudmining.com';
   final String twitterUrl = 'https://twitter.com/MonkeyminingMOK?s=09';
   final String telegramUrl = 'https://t.me/Monkeyfinanceofficial';
-  final String playStoreLink = '';
+  final String playStoreLink = 'https://play.google.com/store/apps/details?id=com.monkeycloudmining.app';
   final String appStoreLink = '';
+  final String emailAddress = 'support@monkeycloudmining.com';
   final String bscScanUrl = 'https://bscscan.com/address/0x56871514686bdd3627729ed03fcd6da1d1dab1c5';
+  String referralCode = '';
 
+
+  @override
+  void initState() {
+    setState(() {
+      referralCode = widget.referralCode;
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +56,7 @@ class _HomeMenuState extends State<HomeMenu> {
             depositToken(),
             stakeMokToken(),
             calculator(),
-            mokTokenDetails(),
+        //    mokTokenDetails(),
             inviteAndEarn(),
             contactSupport(),
             rateApp(),
@@ -177,7 +189,7 @@ class _HomeMenuState extends State<HomeMenu> {
       ),
       onTap: () {
         Get.to(
-          InviteAndEarn(),
+          InviteAndEarn(referralCode),
           transition: Transition.rightToLeft,
           duration: Duration(milliseconds: animationDuration),
         );
@@ -289,7 +301,7 @@ class _HomeMenuState extends State<HomeMenu> {
             ] ),
       ),
       onTap: () {
-        toastMessage('feature not available yet');
+        launch(_emailLaunchFunction());
       } ,
     );
   }
@@ -634,5 +646,24 @@ class _HomeMenuState extends State<HomeMenu> {
       throw 'Could not launch $url';
     }
   }
+
+
+  String encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+  }
+
+  _emailLaunchFunction () {
+    Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: emailAddress,
+      query: encodeQueryParameters(<String, String>{
+        'subject': 'Customer Support: Monkey Cloud Mining'
+      }),
+    );
+    return emailLaunchUri.toString();
+  }
+
 
 }

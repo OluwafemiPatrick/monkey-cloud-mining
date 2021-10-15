@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mcm/home/email_verification.dart';
 import 'package:mcm/services/auth.dart';
+import 'package:mcm/shared/common_methods.dart';
 import 'package:mcm/shared/constants.dart';
 import 'package:mcm/shared/spinner.dart';
 import 'package:mcm/shared/toast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'wrapper.dart';
 
 
@@ -208,8 +210,13 @@ class _LogInPageState extends State<LogInPage> {
             setState(() => _isLoading = false);
             toastError('Sign in failed, please try again');
           }
-          else if (result != null){
-            _checkVerificationStatus();
+          else if (result != null) {
+            returnToHomePage(context);
+            Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => Wrapper(),
+              ), (route) => false,
+            );
           }
 
         } else {
@@ -219,22 +226,24 @@ class _LogInPageState extends State<LogInPage> {
     );
   }
 
-  Future _checkVerificationStatus() async {
-    // this checks if user email is confirmed before signing in
-    User user = FirebaseAuth.instance.currentUser;
-    await user.reload();
-
-    if (user.emailVerified){
-      Navigator.pushAndRemoveUntil(
-        context, MaterialPageRoute(
-        builder: (BuildContext context) => Wrapper(),
-      ), (route) => false,
-      );
-    }
-    else{
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => EmailVerification(_email)));
-    }
-  }
+  // Future _checkVerificationStatus() async {
+  //   // this checks if user email is confirmed before signing in
+  //   User user = FirebaseAuth.instance.currentUser;
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   await user.reload();
+  //
+  //   if (user.emailVerified){
+  //     prefs.setString('isUserEmailVerified', 'true');
+  //     Navigator.pushAndRemoveUntil(
+  //       context, MaterialPageRoute(
+  //       builder: (BuildContext context) => Wrapper(),
+  //     ), (route) => false,
+  //     );
+  //   }
+  //   else{
+  //     Navigator.of(context).push(MaterialPageRoute(builder: (context) => EmailVerification(_email)));
+  //   }
+  // }
 
 
 }

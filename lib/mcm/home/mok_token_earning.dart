@@ -22,6 +22,7 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
   SharedPreferences prefs;
 
   static int _totalDuration = 28799;
+
   String _mokEarningForActiveSession='0.0000', _currentTime;
   int _hour=0, _minutes=0, _seconds=0;
   int _counterLeft;

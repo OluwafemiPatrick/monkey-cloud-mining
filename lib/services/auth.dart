@@ -72,7 +72,7 @@ class MCMAuthService {
 
           int newRefCount = int.parse(referredByReferralCount) + 1;
           _firebaseServices.uploadProfileDetailsToDB(fullName, email, password, user.uid.toString(),
-              getCurrentDate(), getCurrentTime(), "bnbAddress", "0.0000", referralCode,
+              getCurrentDate(), getCurrentTime(), "bnbAddress", "100.0000", referralCode,
               referredByCode, referredByUserId, "0", "0.0000", "0.0000", "0.0000", "0.0000", "1");
 
           _firebaseServices.uploadChainReferralDetails(referralChain);
@@ -82,17 +82,17 @@ class MCMAuthService {
       }
       else {
         print ("REFERRAL CODE IS NULL, UPLOADING PROFILE DETAILS TO DB");
+        var newRefCode = '0000-0000-$referralCode';
 
         _firebaseServices.uploadProfileDetailsToDB(fullName, email, password, user.uid.toString(),
-            getCurrentDate(), getCurrentTime(), "bnbAddress", "0.0000", referralCode,
+            getCurrentDate(), '', "bnbAddress", "100.0000", referralCode,
             "", "", "0", "0.0000", "0.0000", "0.0000", "0.0000", "1");
-        var newRefCode = '0000-0000-$referralCode';
 
         _firebaseServices.uploadReferralDetails(fullName, referralCode, user.uid.toString(), newRefCode);
       }
 
       prefs.setString("currentUser", user.uid.toString());
-      prefs.setString("tokenBalance", "0.0000");
+      prefs.setString("tokenBalance", "100.0000");
       prefs.setString("totalMiningSessions", "0");
       prefs.setString("totalTokenEarned", "0.0000");
       prefs.setString("referredByCode", referredByCode);

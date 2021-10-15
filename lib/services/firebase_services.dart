@@ -95,7 +95,7 @@ class FirebaseServices {
     String ref1 = chainSplit[1];
     String ref2 = chainSplit[2];
 
-    if (ref0.length == 8) {
+    if (ref0.length==12 || ref0.length==8) {
       String ref0UserId, ref0RefCount, ref0RefEarning, ref0TokenBalance;
       refReference.child(ref0).once().then((DataSnapshot snapshot) {
         ref0UserId = snapshot.value["myUserId"];
@@ -116,13 +116,13 @@ class FirebaseServices {
         }).then((value) {
           double newTokenBalance = double.parse(ref0TokenBalance) + 25;
           profileRef.child(ref0UserId).update({
-            "mokTokenBalance" : newTokenBalance
+            "mokTokenBalance" : newTokenBalance.toStringAsFixed(4)
           });
         });
       });
     }
 
-    if (ref1.length == 8) {
+    if (ref1.length==12 || ref0.length==8) {
       String ref1UserId, ref1RefCount, ref1RefEarning, ref1TokenBalance;
       refReference.child(ref1).once().then((DataSnapshot snapshot) {
         ref1UserId = snapshot.value["myUserId"];
@@ -143,13 +143,13 @@ class FirebaseServices {
         }).then((value) {
           double newTokenBalance = double.parse(ref1TokenBalance) + 50;
           profileRef.child(ref1UserId).update({
-            "mokTokenBalance" : newTokenBalance
+            "mokTokenBalance" : newTokenBalance.toStringAsFixed(4)
           });
         });
       });
     }
 
-    if (ref2.length == 8) {
+    if (ref2.length==12 || ref0.length==8) {
       String ref2UserId, ref2RefCount, ref2RefEarning, ref2TokenBalance;
       refReference.child(ref2).once().then((DataSnapshot snapshot) {
         ref2UserId = snapshot.value["myUserId"];
@@ -170,7 +170,7 @@ class FirebaseServices {
         }).then((value) {
           double newTokenBalance = double.parse(ref2TokenBalance) + 100;
           profileRef.child(ref2UserId).update({
-            "mokTokenBalance" : newTokenBalance
+            "mokTokenBalance" : newTokenBalance.toStringAsFixed(4)
           });
         });
       });

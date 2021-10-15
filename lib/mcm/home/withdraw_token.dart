@@ -39,15 +39,15 @@ class _WithdrawTokenState extends State<WithdrawToken> {
           height: MediaQuery.of(context).size.height,
           padding: EdgeInsets.only(bottom: 10.0),
           color: colorBgMain,
-          child: Column(
+          child: ListView(
               children: [
                 Divider(color: colorBlue, thickness: 0.5, height: 1.0),
                 accountBalance(),
-                Spacer(flex: 1),
+                SizedBox(height: 30.0),
                 info(),
-                Spacer(flex: 1),
+                SizedBox(height: 30.0),
                 withdrawContainers(),
-                Spacer(flex: 1),
+                SizedBox(height: 30.0),
                 withdrawButton(),
               ] ),
         )
@@ -82,7 +82,7 @@ class _WithdrawTokenState extends State<WithdrawToken> {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12.0),
                           child: Text('$_mokTotalBalance MOK',
-                              style: TextStyle(fontSize: 20.0, color: colorWhite)),
+                              style: TextStyle(fontSize: 18.0, color: colorWhite)),
                         ),
                         Text('\$' + usdEarning.toStringAsFixed(4) + ' USD',
                             style: TextStyle(fontSize: 12.0, color: colorWhite)),
@@ -102,7 +102,7 @@ class _WithdrawTokenState extends State<WithdrawToken> {
     var text = 'Withdrawal requests are processed manually. Please allow up to 24h to receive your MOK.'
         '\n \nWe recommend withdrawing to a BEP-20 supported wallet like TrustWallet.'
         '\n \nBlockchain transactions cannot be cancelled or reversed after you submit them. Please make sure that'
-        'your details are correct';
+        ' your details are correct';
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 5.0),
       padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
@@ -172,7 +172,7 @@ class _WithdrawTokenState extends State<WithdrawToken> {
   Widget withdrawButton() {
     return Container(
       height: 50.0,
-      width: MediaQuery.of(context).size.width * 0.9,
+      margin: EdgeInsets.symmetric(horizontal: 30.0),
       child: ElevatedButton(
         child: Text('WITHDRAW', style: TextStyle(
             color: colorWhite, fontSize: 16.0),),

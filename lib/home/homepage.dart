@@ -1,12 +1,10 @@
 import 'dart:io';
 
 import 'package:connectivity/connectivity.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:mcm/home/email_verification.dart';
 import 'package:mcm/mcm/game/home_game.dart';
 import 'package:mcm/mcm/home/home_home.dart';
 import 'package:mcm/mcm/log/home_log.dart';
@@ -22,15 +20,24 @@ class HomePage extends StatefulWidget {
 
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
+
   SharedPreferences prefs;
+
+  double _iconSize = 25.0;
+  double _textSize = 12.0;
+
+  bool isHomeButton = true;
+  bool isLogButton = false;
+  bool isGameButton = false;
+  bool isMenuButton = false;
   bool _isConnected = false;
+
+  String _mokTokenBalance, _miningSessionFromDB, _dayCount, _referralCode;
 
   @override
   void initState() {
     _getConnectionStatus();
-    SystemChrome.setPreferredOrientations(
-        [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     super.initState();
   }
 
@@ -57,55 +64,154 @@ class _HomePageState extends State<HomePage> {
           height: MediaQuery.of(context).size.height,
           child: Stack(
             children: [
-              Visibility(
-                visible: _isConnected,
-                child: _widgetOptions.elementAt(_selectedIndex)
+              Column(
+                children: [
+                  Expanded(
+                    child: Visibility(
+                      visible: _isConnected,
+                      child: _switchNavigationButtons()
+                    ),
+                  ),
+                  bottomNavigationButtons(),
+                ],
               ),
               _noConnectionDisplay(),
             ],
           )
       ),
+    );
+  }
 
-      bottomNavigationBar: new Theme(
-        data: Theme.of(context).copyWith(
-            canvasColor: colorBgLighter,
-        ),
-        child: new BottomNavigationBar(
-          type: BottomNavigationBarType.shifting,
-          currentIndex: _selectedIndex,
-          elevation: 2.0,
-          selectedItemColor: colorBlue,
-          unselectedItemColor: colorWhite,
-          onTap: _onItemTapped,
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.store),
-              label: 'Log',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.games_outlined),
-              label: 'Game',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.menu),
-              label: 'Menu',
-            ),
-          ] ),
+
+  Widget _switchNavigationButtons() {
+
+    if (isLogButton == true) {
+      return HomeLog();
+    }
+    if (isGameButton == true) {
+      return HomeGame();
+    }
+    if (isMenuButton == true) {
+      return HomeMenu(_referralCode);
+    }
+    else {
+      return HomeHome(_miningSessionFromDB, _dayCount, _referralCode, _mokTokenBalance);
+    }
+  }
+
+  Widget bottomNavigationButtons() {
+    return Container(
+      color: colorBgLighter,
+      padding: EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 5.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          _homeButton(text: "Home", iconName: Icons.home),
+          _logButton(text: "Log", iconName: Icons.store),
+          _gameButton(text: 'Game', iconName: Icons.games_outlined),
+          _menuButton(text: "Menu", iconName: Icons.menu),
+        ],
       ),
     );
   }
 
 
-  List<Widget> _widgetOptions = <Widget>[
-    HomeHome(),
-    HomeLog(),
-    HomeGame(),
-    HomeMenu(),
-  ];
+  _homeButton({String text, IconData iconName}) {
+    return Expanded(
+      child: FlatButton(
+        onPressed: () {
+          setState(() {
+            isHomeButton = true;
+            isLogButton = false;
+            isGameButton = false;
+            isMenuButton = false;
+          });
+        },
+        child: Column(
+          children: <Widget>[
+            Icon(iconName, size: _iconSize, color: isHomeButton ? colorBlue : colorWhite),
+            SizedBox(height: 5.0),
+            isHomeButton
+                ? Text(text, style: TextStyle(fontSize: _textSize, color: isHomeButton ? colorBlue : colorWhite))
+                : Container()
+          ],
+        ),
+      ),
+    );
+  }
+
+  _logButton({String text, IconData iconName}) {
+    return Expanded(
+      child: FlatButton(
+        onPressed: () {
+          setState(() {
+            isHomeButton = false;
+            isLogButton = true;
+            isGameButton = false;
+            isMenuButton = false;
+          });
+        },
+        child: Column(
+          children: <Widget>[
+            Icon(iconName, size: _iconSize, color: isLogButton ? colorBlue : colorWhite),
+            SizedBox(height: 5.0),
+            isLogButton
+                ? Text(text, style: TextStyle(fontSize: _textSize, color: isLogButton ? colorBlue : colorWhite))
+                : Container()
+          ],
+        ),
+      ),
+    );
+  }
+
+  _gameButton({String text, IconData iconName}) {
+    return Expanded(
+      child: FlatButton(
+        onPressed: () {
+          setState(() {
+            isHomeButton = false;
+            isLogButton = false;
+            isGameButton = true;
+            isMenuButton = false;
+          });
+        },
+        child: Column(
+          children: <Widget>[
+            Icon(iconName, size: _iconSize, color: isGameButton ?colorBlue : colorWhite),
+            SizedBox(height: 5.0),
+            isGameButton
+                ? Text(text, style: TextStyle(fontSize: _textSize, color: isGameButton ? colorBlue : colorWhite))
+                : Container()
+          ],
+        ),
+      ),
+    );
+  }
+
+  _menuButton({String text, IconData iconName}) {
+    return Expanded(
+      child: FlatButton(
+        onPressed: () {
+          setState(() {
+            isHomeButton = false;
+            isLogButton = false;
+            isGameButton = false;
+            isMenuButton = true;
+          });
+        },
+        child: Column(
+          children: <Widget>[
+            Icon(iconName, size: _iconSize, color: isMenuButton ? colorBlue : colorWhite ),
+            SizedBox(height: 5.0),
+            isMenuButton
+                ? Text(text, style: TextStyle(fontSize: _textSize, color: isMenuButton ? colorBlue : colorWhite))
+                : Container()
+          ],
+        ),
+      ),
+    );
+  }
 
 
   Widget _noConnectionDisplay() {
@@ -160,20 +266,31 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
-  }
 
-  Future _getBalanceAndLoginTime() async {
+  Future _fetchDataAndUpdateLoginTime() async {
     DatabaseReference profileRef = FirebaseDatabase.instance.reference().child("user_profile");
     DateTime now = DateTime.now();
     prefs = await SharedPreferences.getInstance();
+
     String currentTime = DateFormat('H:m, MMM d ''yyyy.').format(now);
     String userId = prefs.getString("currentUser");
 
     profileRef.child(userId).once().then((DataSnapshot snapshot) {
+
+      setState(() {
+        _referralCode = snapshot.value['referralCode'];
+        _mokTokenBalance = snapshot.value['mokTokenBalance'];
+        _miningSessionFromDB = snapshot.value['totalMiningSessions'];
+        _dayCount = snapshot.value['dayCount'];
+      });
+
       prefs.setString("tokenBalance", snapshot.value['mokTokenBalance']);
-      print('CURRENT MOK BALANCE IS : ' + snapshot.value['mokTokenBalance']);
+
+      print('CURRENT MOK BALANCE IS : $_mokTokenBalance');
+      print('CURRENT REFERRAL CODE IS : $_referralCode');
+      print('CURRENT MINING SESSION : $_miningSessionFromDB');
+      print('CURRENT DAY COUNT IS : $_dayCount');
+
     }).then((value) {
       profileRef.child(userId).update({
         "lastLogin" : currentTime,
@@ -189,27 +306,10 @@ class _HomePageState extends State<HomePage> {
     if (connectivityResult==ConnectivityResult.mobile || connectivityResult==ConnectivityResult.wifi) {
       // I am connected to a network.
       setState(() => _isConnected = true);
-      _checkEmailVerification();
+      _fetchDataAndUpdateLoginTime();
     }
     else {
       _isConnected = false;
-    }
-  }
-
-  Future _checkEmailVerification() async {
-    User userVer = FirebaseAuth.instance.currentUser;
-    prefs = await SharedPreferences.getInstance();
-
-    String email = prefs.getString("userEmail");
-    await userVer.reload();
-
-    if (userVer.emailVerified) {
-      _getBalanceAndLoginTime();
-    } else {
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-        builder: (BuildContext context) => EmailVerification(email),
-      ), (route) => false,
-      );
     }
   }
 

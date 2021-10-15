@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:async';
 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -7,9 +7,13 @@ import 'package:mcm/shared/constants.dart';
 import 'package:mcm/shared/mcm_logo.dart';
 import 'package:mcm/shared/toast.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class InviteAndEarn extends StatefulWidget {
+
+  final String referralCode;
+  InviteAndEarn(this.referralCode);
+
   @override
   _InviteAndEarnState createState() => _InviteAndEarnState();
 }
@@ -90,9 +94,9 @@ class _InviteAndEarnState extends State<InviteAndEarn> {
             child: ElevatedButton(
               child: Row(
                 children: [
-                  SizedBox(width: 20.0),
+                  SizedBox(width: 8.0),
                   Text(_referralCode,
-                    style: TextStyle(color: colorWhite, fontSize: 16.0, fontWeight: FontWeight.normal),),
+                    style: TextStyle(color: colorWhite, fontSize: 13.0, fontWeight: FontWeight.normal),),
                   Spacer(flex: 1),
                   SizedBox(
                     width: 35.0,
@@ -303,21 +307,29 @@ class _InviteAndEarnState extends State<InviteAndEarn> {
 
   Future _getReferralCode() async {
     DatabaseReference refReference = FirebaseDatabase.instance.reference().child("referral_ids");
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String refCode = prefs.getString('referral_code');
 
-    refReference.child(refCode).once().then((DataSnapshot snapshot) {
-      setState(() {
-        _referralCode = refCode;
-        _totalInvites = snapshot.value['noOfReferrals'];
-        _usersEarned2Times = snapshot.value['users_earned_two'];
-        _usersEarned5Times = snapshot.value['users_earned_five'];
-        _usersEarned10Times = snapshot.value['users_earned_ten'];
-        _subLevelRefCount = snapshot.value['subLevelRefCount'];
-        _subLevelRefEarning = snapshot.value['subLevelRefEarning'];
-
-      });
+    setState(() {
+      _referralCode = widget.referralCode;
     });
+    if (_referralCode.isNotEmpty) {
+      refReference.child(_referralCode).once().then((DataSnapshot snapshot) {
+        setState(() {
+          _totalInvites = snapshot.value['noOfReferrals'];
+          _usersEarned2Times = snapshot.value['users_earned_two'];
+          _usersEarned5Times = snapshot.value['users_earned_five'];
+          _usersEarned10Times = snapshot.value['users_earned_ten'];
+          _subLevelRefCount = snapshot.value['subLevelRefCount'];
+          _subLevelRefEarning = snapshot.value['subLevelRefEarning'];
+
+        });
+      });
+    }
+    else {
+      Timer(Duration(seconds: 3), () {
+        _getReferralCode();
+      });
+    }
+
   }
 
 

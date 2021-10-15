@@ -1,18 +1,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mcm.mcm">
+
    <application
         android:label="MCM"
         android:icon="@mipmap/launcher_icon">
 
        <meta-data
            android:name="com.google.android.gms.ads.APPLICATION_ID"
-           android:value="ca-app-pub-3940256099942544~3347511713"/>
+           android:value="ca-app-pub-8265037961520877~2737048907"/>
 
        <!-- android live key  ca-app-pub-8265037961520877~2737048907
             info.plist key ca-app-pub-8265037961520877~4769489335
-
             android test key  ca-app-pub-3940256099942544~3347511713
        /-->
+
 
         <activity
             android:name=".MainActivity"
@@ -38,6 +39,7 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
@@ -45,4 +47,5 @@
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
+
 </manifest>

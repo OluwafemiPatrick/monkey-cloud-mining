@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "910770470676",
+    "firebase_url": "https://monkey-cloud-mining-51692-default-rtdb.firebaseio.com",
     "project_id": "monkey-cloud-mining-51692",
     "storage_bucket": "monkey-cloud-mining-51692.appspot.com"
   },
@@ -13,14 +14,6 @@
         }
       },
       "oauth_client": [
-        {
-          "client_id": "910770470676-tte6cb00gog5uq7i20iahuhuqlcvakk7.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.monkeycloudmining.app",
-            "certificate_hash": "d8fba61c386eccfdced3256fc5a62fa6c8b907b4"
-          }
-        },
         {
           "client_id": "910770470676-uec90j9usqs2roi4attn4u4n3atadq6t.apps.googleusercontent.com",
           "client_type": 3
@@ -37,6 +30,13 @@
             {
               "client_id": "910770470676-uec90j9usqs2roi4attn4u4n3atadq6t.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "910770470676-smk0em8brsek8pjok0v0qanuluinpics.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.oopatrick.firebase.firebaseTest"
+              }
             }
           ]
         }

@@ -1,22 +1,28 @@
 
+import 'dart:async';
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mcm/mcm/home/invite_and_earn.dart';
 import 'package:mcm/mcm/home/mok_token_earning.dart';
-import 'package:mcm/mcm/home/mok_token_earning.dart';
 import 'package:mcm/mcm/home/stake_mok_token.dart';
 import 'package:mcm/mcm/home/withdraw_token.dart';
 import 'package:mcm/services/adhelper.dart';
 import 'package:mcm/shared/common_methods.dart';
 import 'package:mcm/shared/constants.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'deposit_mok_token.dart';
 
 
 class HomeHome extends StatefulWidget {
+
+  final String miningSessionFromDB, dayCount, referralCode, mokTokenBalance;
+  HomeHome(this.miningSessionFromDB, this.dayCount, this.referralCode, this.mokTokenBalance);
+
   @override
   _HomeHomeState createState() => _HomeHomeState();
 }
@@ -24,18 +30,29 @@ class HomeHome extends StatefulWidget {
 class _HomeHomeState extends State<HomeHome> {
 
   SharedPreferences prefs;
-  String _currentTime, _mokTokenBalance="0.0000";
-  String _hour='', _min='';
   int _pageTransition = 200;
+
+  String _currentTime, _mokTokenBalance="0.0000";
+  String _hour='', _min='', _referralCode='';
+  String _miningSessionFromDB='', _dayCount='';
+
 
   @override
   void initState() {
-    _getMokBalance();
-    _pushLastMiningDetailsToDB();
+    _fetchDataFromPreviousPage();
     myBanner.load();
     super.initState();
   }
 
+  _fetchDataFromPreviousPage() {
+    setState(() {
+      _miningSessionFromDB = widget.miningSessionFromDB;
+      _dayCount = widget.dayCount;
+      _mokTokenBalance = widget.mokTokenBalance;
+      _referralCode = widget.referralCode;
+    });
+    _pushLastMiningDetailsToDB();
+  }
 
   @override
   void dispose() {
@@ -64,27 +81,33 @@ class _HomeHomeState extends State<HomeHome> {
   @override
   Widget build(BuildContext context) {
     final AdWidget adWidget = AdWidget(ad: myBanner);
-    return Container(
-      padding: EdgeInsets.only(bottom: 10.0),
-      color: colorBgMain,
-      child: Column(
-          children: [
-            mcmLogo(),
-            Divider(color: colorBlue, thickness: 0.5, height: 1.0),
-            accountBalance(),
-            Spacer(flex: 1),
-            buttonDisplay(),
-            Expanded(
-              flex: 3,
-              child: Container(
-                alignment: Alignment.center,
-                child: adWidget,
-                width: myBanner.size.width.toDouble(),
-                height: myBanner.size.height.toDouble(),
+    return SmartRefresher(
+      onRefresh: _onRefresh,
+      enablePullDown: true,
+      header: WaterDropHeader(),
+      controller: RefreshController(),
+      child: Container(
+        padding: EdgeInsets.only(bottom: 10.0),
+        color: colorBgMain,
+        child: Column(
+            children: [
+              mcmLogo(),
+              Divider(color: colorBlue, thickness: 0.5, height: 1.0),
+              accountBalance(),
+              Spacer(flex: 1),
+              buttonDisplay(),
+              Expanded(
+                flex: 3,
+                child: Container(
+                  alignment: Alignment.center,
+                  child: adWidget,
+                  width: myBanner.size.width.toDouble(),
+                  height: myBanner.size.height.toDouble(),
+                ),
               ),
-            ),
-            startMining(),
-          ] ),
+              startMining(),
+            ] ),
+      ),
     );
   }
 
@@ -187,7 +210,7 @@ class _HomeHomeState extends State<HomeHome> {
                   ),
                   onPressed: () {
                     Get.to(
-                      InviteAndEarn(),
+                      InviteAndEarn(_referralCode),
                       transition: Transition.rightToLeft,
                       duration: Duration(milliseconds: _pageTransition),
                     );
@@ -262,9 +285,15 @@ class _HomeHomeState extends State<HomeHome> {
 
 
   Widget accountBalance() {
-    _getMokBalance();
+    double usdEarning = 0.0;
 
-    double usdEarning = double.parse(_mokTokenBalance) * 0.001;
+    Timer(Duration(seconds: 3), () {
+      initState();
+    });
+    setState(() {
+      usdEarning = double.parse(_mokTokenBalance) * 0.001;
+    });
+
     return Container(
       width: MediaQuery.of(context).size.width,
       margin: EdgeInsets.only(top: 10.0, left: 4.0, right: 4.0),
@@ -324,23 +353,17 @@ class _HomeHomeState extends State<HomeHome> {
   }
 
   _pushLastMiningDetailsToDB() async {
-    DatabaseReference profileRef = FirebaseDatabase.instance.reference();
     prefs = await SharedPreferences.getInstance();
-    var localTotalMiningSession = prefs.getString("totalMiningSessions");
-    var miningSessionFromDB;
+    String lSession = prefs.getString("totalMiningSessions");
 
-    profileRef.child("user_profile").child(prefs.getString("currentUser")).once().then((DataSnapshot snapshot) {
-      miningSessionFromDB = snapshot.value["totalMiningSessions"];
-      int diff = int.parse(localTotalMiningSession) - int.parse(miningSessionFromDB);
-      print ("MINING SESSION FETCHED. Difference is : " + diff.toString() );
-    }).then((value) {
-      var localSession = double.parse(localTotalMiningSession);
-      var onlineSession = double.parse(miningSessionFromDB);
+    if (lSession != null) {
+      var localSession = double.parse(lSession);
+      var onlineSession = double.parse(_miningSessionFromDB);
 
       if (localSession > onlineSession) {
         _updateMiningDataToDB();
       }
-    });
+    }
 
   }
 
@@ -351,9 +374,6 @@ class _HomeHomeState extends State<HomeHome> {
     String totalBal = prefs.getString("tokenBalance");
     String numOfSessions = prefs.getString("totalMiningSessions");
     String totalTokenEarned = prefs.getString("totalTokenEarned");
-
-    var totalTokenMined;
-    var availableTokenBalance;
 
     profileRef.child("user_profile").child(prefs.getString("currentUser")).update({
       "mokTokenBalance" : totalBal,
@@ -368,19 +388,6 @@ class _HomeHomeState extends State<HomeHome> {
       "time" : getCurrentTime(),
     });
 
-    profileRef.child("mcm_details").once().then((DataSnapshot snapshot) {
-      totalTokenMined = snapshot.value["totalTokenMined"];
-      availableTokenBalance = snapshot.value["availableTokenBalance"];
-    }).then((value) {
-      var newTotalTokenMined = double.parse(totalTokenMined) + 333.3333;
-      var newAvailableTokenBal = double.parse(availableTokenBalance) + 333.3333;
-      profileRef.child("mcm_details").update({
-        "totalTokenMined" : newTotalTokenMined.toStringAsFixed(4),
-        "availableTokenBalance" : newAvailableTokenBal.toStringAsFixed(4),
-      });
-      print ("EXITING BALANCE UPDATE METHOD");
-    });
-
   }
 
   _currentTimeInSeconds() {
@@ -389,28 +396,11 @@ class _HomeHomeState extends State<HomeHome> {
     setState(() => _currentTime = currentTime);
   }
 
-  _getMokBalance() async {
-    DatabaseReference profileRef = FirebaseDatabase.instance.reference().child("user_profile");
-    prefs = await SharedPreferences.getInstance();
-    var tokBal = prefs.getString("tokenBalance");
-
-    if (tokBal != null) {
-      setState(() => _mokTokenBalance = tokBal);
-    }
-    else {
-      profileRef.child(prefs.getString("currentUser")).once().then((DataSnapshot snapshot) {
-        setState(() {
-          _mokTokenBalance = snapshot.value["mokTokenBalance"];
-          prefs.setString("tokenBalance", snapshot.value["mokTokenBalance"]);
-        });
-      });
-    }
-
-    print ("MOK TOKEN BALANCE IS $_mokTokenBalance");
+  _onRefresh() {
+    returnToHomePage(context);
   }
 
   _dailyRewardUpdate() async {
-    DatabaseReference profileRef = FirebaseDatabase.instance.reference().child("user_profile");
     prefs = await SharedPreferences.getInstance();
     var ms = (new DateTime.now()).microsecondsSinceEpoch;
 
@@ -422,71 +412,66 @@ class _HomeHomeState extends State<HomeHome> {
     int timeBetweenLogin = currentTime - lastLogin;
     double timeLeft = (time24-timeBetweenLogin) / 1000;
 
-    String dayCount;
     _calculateTimestamp(timeLeft);
 
-    profileRef.child(prefs.getString("currentUser")).once().then((DataSnapshot snapshot) {
-      dayCount = snapshot.value["dayCount"];
-    }).then((value) {
-      int dailyCount = int.parse(dayCount);
+    int dailyCount = int.parse(_dayCount);
 
-      if (timeBetweenLogin > time24) {
-        if (timeBetweenLogin < (time24 * 2)) {
-          int newCount = dailyCount + 1;
-          if (newCount < 7) {
-            // add 100 MOK
-            _dailyCheckIn(context, true, newCount, 100.0000);
-            prefs.setInt("last_login", currentTime);
-            print ('METHOD ONE 1 CALLED');
-          }
-          if (newCount>6 && newCount<14) {
-            // add 200 MOK
-            _dailyCheckIn(context, true, newCount, 200.0000);
-            prefs.setInt("last_login", currentTime);
-            print ('METHOD TWO 2 CALLED');
-          }
-          if (newCount>13 && newCount<21) {
-            // add 300 MOK
-            _dailyCheckIn(context, true, newCount, 300.0000);
-            prefs.setInt("last_login", currentTime);
-            print ('METHOD THREE 3 CALLED');
-          }
-          if (newCount>20 && newCount<30) {
-            // add 400 MOK
-            _dailyCheckIn(context, true, newCount, 400.0000);
-            prefs.setInt("last_login", currentTime);
-            print ('METHOD FOUR 4 CALLED');
-          }
-          if (newCount == 30) {
-            // add 500 MOK
-            _dailyCheckIn(context, true, newCount, 500.0000);
-            prefs.setInt("last_login", currentTime);
-            print ('METHOD FIVE 5 CALLED');
-          }
-          if (newCount > 30) {
-            // reset daily_count
-            _dailyCheckIn(context, true, 1, 100.00000);
-            prefs.setInt("last_login", currentTime);
-            print ('METHOD SIX 6 CALLED');
-          }
-        }
-        else {
-          // reset daily_counter and add 100 MOK
-          _dailyCheckIn(context, true, 1, 100.0000);
+    if (timeBetweenLogin > time24) {
+      if (timeBetweenLogin < (time24 * 2)) {
+        int newCount = dailyCount + 1;
+        if (newCount < 7) {
+          // add 100 MOK
+          _dailyCheckIn(context, true, newCount, 100.0000);
           prefs.setInt("last_login", currentTime);
-          print ('METHOD SEVEN 7 CALLED');
+          print ('METHOD ONE 1 CALLED');
         }
-      }
-      if (lastLogin == null || lastLogin == 0) {
-        _dailyCheckIn(context, true, 1, 100);
-        prefs.setInt("last_login", currentTime);
+        if (newCount>6 && newCount<14) {
+          // add 200 MOK
+          _dailyCheckIn(context, true, newCount, 200.0000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD TWO 2 CALLED');
+        }
+        if (newCount>13 && newCount<21) {
+          // add 300 MOK
+          _dailyCheckIn(context, true, newCount, 300.0000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD THREE 3 CALLED');
+        }
+        if (newCount>20 && newCount<30) {
+          // add 400 MOK
+          _dailyCheckIn(context, true, newCount, 400.0000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD FOUR 4 CALLED');
+        }
+        if (newCount == 30) {
+          // add 500 MOK
+          _dailyCheckIn(context, true, newCount, 500.0000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD FIVE 5 CALLED');
+        }
+        if (newCount > 30) {
+          // reset daily_count
+          _dailyCheckIn(context, true, 1, 100.00000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD SIX 6 CALLED');
+        }
       }
       else {
-        // add 0 MOK
-        _dailyCheckIn(context, false, dailyCount, 0.0000);
-        print ('METHOD EIGHT 8 CALLED');
+        // reset daily_counter and add 100 MOK
+        _dailyCheckIn(context, true, 1, 100.0000);
+        prefs.setInt("last_login", currentTime);
+        print ('METHOD SEVEN 7 CALLED');
       }
-    });
+    }
+    if (lastLogin == null || lastLogin == 0) {
+      _dailyCheckIn(context, true, 1, 100);
+      prefs.setInt("last_login", currentTime);
+    }
+    else {
+      // add 0 MOK
+      _dailyCheckIn(context, false, dailyCount, 0.0000);
+      print ('METHOD EIGHT 8 CALLED');
+    }
 
   }
 
@@ -633,7 +618,6 @@ class _HomeHomeState extends State<HomeHome> {
     prefs = await SharedPreferences.getInstance();
 
     double newMokTokenBalance = double.parse(_mokTokenBalance) + amount;
-    print ('MY NEW TOKEN BALANCE IS : $newMokTokenBalance');
     prefs.setString("tokenBalance", newMokTokenBalance.toStringAsFixed(4));
 
     profileRef.child(prefs.getString("currentUser")).update({

@@ -1,7 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mcm/mcm/home/stake_mok_token_two.dart';
+import 'package:mcm/mcm/home/stake_mok_token_confirmation.dart';
 import 'package:mcm/mcm/home/staking_log.dart';
 import 'package:mcm/shared/common_methods.dart';
 import 'package:mcm/shared/constants.dart';
@@ -16,7 +16,7 @@ class StakeMokToken extends StatefulWidget {
 
 class _StakeMokTokenState extends State<StakeMokToken> {
 
-  String _amountToStake = '', _totalNetStake = '', _mokTokenBalance='', _stakedBalance='0.0000';
+  String _amountToStake = '', _mokTokenBalance='', _stakedBalance='0.0000';
 
 
   @override
@@ -42,14 +42,17 @@ class _StakeMokTokenState extends State<StakeMokToken> {
           height: MediaQuery.of(context).size.height,
           padding: EdgeInsets.only(bottom: 10.0),
           color: colorBgMain,
-          child: Column(
+          child: ListView(
               children: [
                 Divider(color: colorBlue, thickness: 0.5, height: 1.0),
                 accountBalance(),
-                Spacer(flex: 1),
-                Text('Stake MOK', style: TextStyle(fontSize: 18.0, color: colorGold),),
+                SizedBox(height: 20.0),
+                Text('Stake MOK',
+                  style: TextStyle(fontSize: 18.0, color: colorGold),
+                  textAlign: TextAlign.center,
+                ),
                 middleContainer(),
-                Spacer(flex: 3,),
+                SizedBox(height: 60.0),
                 stakeToken(),
               ] ),
         )
@@ -119,11 +122,6 @@ class _StakeMokTokenState extends State<StakeMokToken> {
             padding: const EdgeInsets.only(top: 0.0, bottom: 10.0),
             child: Text('Monthly Staking Reward => 3%', style: TextStyle(fontSize: 14.0, color: colorWhite),),
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 5.0, bottom: 10.0),
-            child: Text('Total networking stake $_totalNetStake MOK',
-              style: TextStyle(fontSize: 14.0, color: colorWhite),),
-          ),
           GestureDetector(
             child: Container(
               width: 200.0,
@@ -173,7 +171,7 @@ class _StakeMokTokenState extends State<StakeMokToken> {
 
   Widget stakeToken() {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.8,
+      margin: EdgeInsets.symmetric(horizontal: 30.0),
       height: 50.0,
       child: ElevatedButton(
         child: Text('Stake Token', style: TextStyle(
@@ -218,22 +216,16 @@ class _StakeMokTokenState extends State<StakeMokToken> {
       "mokTokenBalance" : newAvailableTokenBal.toStringAsFixed(4),
     });
 
-    // update details on mcm account
-    var newTotalNetTokenStaked = double.parse(_totalNetStake) + double.parse(_amountToStake);
-    profileRef.child("mcm_details").update({
-      "totalNetStake" : newTotalNetTokenStaked.toStringAsFixed(4),
-    }).then((value) {
-      Get.to(
-        StakeMokTokenConfirmation(),
-        transition: Transition.rightToLeft,
-        duration: Duration(milliseconds: 500),
-      );
-    });
-
     // send staking details to user profile using timestamp
     profileRef.child("stake_token").child(prefs.getString("currentUser")).child(currentTime).set({
       "amount" : _amountToStake,
       "staked_on" : getCurrentTime(),
+    }).then((value) {
+      Get.to(
+        StakeMokTokenConfirmation(),
+        transition: Transition.rightToLeft,
+        duration: Duration(milliseconds: 400),
+      );
     });
   }
 
@@ -246,11 +238,6 @@ class _StakeMokTokenState extends State<StakeMokToken> {
       setState(() {
         _stakedBalance = snapshot.value["totalTokenStaked"];
         _mokTokenBalance = snapshot.value["mokTokenBalance"];
-      });
-    });
-    profileRef.child("mcm_details").once().then((DataSnapshot snapshot) {
-      setState(() {
-        _totalNetStake = snapshot.value["totalNetStake"];
       });
     });
   }

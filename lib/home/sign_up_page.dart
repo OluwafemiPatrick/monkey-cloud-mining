@@ -54,7 +54,7 @@ class _SignUpPageState extends State<SignUpPage> {
     String _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnPpQqRrSsTtUuVvWwXxYyZz123456789';
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Random _rnd = Random();
-    int length = 8;
+    int length = 12;
 
     String rCode = String.fromCharCodes(Iterable.generate(
         length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length)))
@@ -463,7 +463,7 @@ class _SignUpPageState extends State<SignUpPage> {
               } else if (result != null){
                 Navigator.pushAndRemoveUntil(
                   context, MaterialPageRoute(
-                  builder: (BuildContext context) => EmailVerification(_email),
+                  builder: (BuildContext context) => Wrapper(),
                 ), (route) => false,
                 );
               }

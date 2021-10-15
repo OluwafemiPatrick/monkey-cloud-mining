@@ -17,13 +17,16 @@ class _HomeLogState extends State<HomeLog> {
   SharedPreferences prefs;
   List<MiningLogDataModel> miningLogList = [];
   List<TransactionLogDataModel> transactionLogList = [];
-  
+  DatabaseReference _profileRef = FirebaseDatabase.instance.reference();
+
   bool _isMiningSelected = true;
   bool _isQueryComplete = false;
+  bool _isQuery2Complete = false;
 
   @override
   void initState() {
     _fetchMiningLogFromDB();
+    _fetchTransactionLogFromDB();
     super.initState();
   }
 
@@ -132,7 +135,7 @@ class _HomeLogState extends State<HomeLog> {
 
   Widget showTransactionLog() {
     return Container(
-      child: _isQueryComplete ? Column(
+      child: _isQuery2Complete ? Column(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0),
@@ -143,7 +146,7 @@ class _HomeLogState extends State<HomeLog> {
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.symmetric(vertical: 10.0),
-              itemCount: miningLogList.length,
+              itemCount: transactionLogList.length,
               itemBuilder: (_, index) {
                 return withdrawalLog(
                   transactionLogList[index].amount,
@@ -205,7 +208,6 @@ class _HomeLogState extends State<HomeLog> {
   
   
   Future _fetchMiningLogFromDB() async {
-    DatabaseReference profileRef = FirebaseDatabase.instance.reference();
     prefs = await SharedPreferences.getInstance();
     String userId = prefs.getString("currentUser");
 
@@ -214,22 +216,8 @@ class _HomeLogState extends State<HomeLog> {
         setState(() => _isQueryComplete = true );
       },
     );
-
-    profileRef.child("withdrawal").child(userId).once().then((DataSnapshot snap) {
-      transactionLogList.clear();
-      var keys = snap.value.keys;
-      var values = snap.value;
-      for (var key in keys) {
-        TransactionLogDataModel data = new TransactionLogDataModel(
-          values [key]["amount"],
-          values [key]["status"],
-          values [key]["time"],
-        );
-        transactionLogList.add(data);
-      }
-    });
     
-    profileRef.child("stakes").child(userId).once().then((DataSnapshot snap) {
+    _profileRef.child("stakes").child(userId).once().then((DataSnapshot snap) {
       miningLogList.clear();
       var keys = snap.value.keys;
       var values = snap.value;
@@ -243,6 +231,35 @@ class _HomeLogState extends State<HomeLog> {
       setState(() => _isQueryComplete = true);
     });
   }
+
+  Future _fetchTransactionLogFromDB() async {
+    prefs = await SharedPreferences.getInstance();
+    String userId = prefs.getString("currentUser");
+
+    Timer(
+      Duration(seconds: 8), () {
+        setState(() => _isQuery2Complete = true );
+      },
+    );
+
+    _profileRef.child("withdrawal").child(userId).once().then((DataSnapshot snap) {
+      transactionLogList.clear();
+      var keys = snap.value.keys;
+      var values = snap.value;
+      for (var key in keys) {
+        TransactionLogDataModel data = new TransactionLogDataModel(
+          values [key]["amount"],
+          values [key]["status"],
+          values [key]["time"],
+        );
+        transactionLogList.add(data);
+      }
+      setState(() => _isQuery2Complete = true);
+
+    });
+
+  }
+
 
 
 }

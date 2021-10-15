@@ -142,18 +142,18 @@ class WithdrawTokenTwo extends StatelessWidget {
     });
 
     // update details on mcm account
-    profileRef.child("mcm_details").once().then((DataSnapshot snapshot) {
-      totalTokenWithdrawn = snapshot.value["totalWithdrawal"];
-      availableTokenBalance = snapshot.value["availableTokenBalance"];
-    }).then((value) {
-      var newTotalTokenWithdrawn = double.parse(totalTokenWithdrawn) + double.parse(amount);
-      var newAvailableTokenBal = double.parse(availableTokenBalance) - double.parse(amount);
-      profileRef.child("mcm_details").update({
-        "totalWithdrawal" : newTotalTokenWithdrawn.toStringAsFixed(4),
-        "availableTokenBalance" : newAvailableTokenBal.toStringAsFixed(4),
-      });
-      print ("EXITING MOK BALANCE UPDATE METHOD");
-    });
+    // profileRef.child("mcm_details").once().then((DataSnapshot snapshot) {
+    //   totalTokenWithdrawn = snapshot.value["totalWithdrawal"];
+    //   availableTokenBalance = snapshot.value["availableTokenBalance"];
+    // }).then((value) {
+    //   var newTotalTokenWithdrawn = double.parse(totalTokenWithdrawn) + double.parse(amount);
+    //   var newAvailableTokenBal = double.parse(availableTokenBalance) - double.parse(amount);
+    //   profileRef.child("mcm_details").update({
+    //     "totalWithdrawal" : newTotalTokenWithdrawn.toStringAsFixed(4),
+    //     "availableTokenBalance" : newAvailableTokenBal.toStringAsFixed(4),
+    //   });
+    //   print ("EXITING MOK BALANCE UPDATE METHOD");
+    // });
 
     // send withdrawal_log info to database
     profileRef.child("withdrawal").child(prefs.getString("currentUser")).child(currentTime).set({
@@ -166,7 +166,7 @@ class WithdrawTokenTwo extends StatelessWidget {
       Get.to(
         WithdrawTokenConfirmation(amount, address),
         transition: Transition.rightToLeft,
-        duration: Duration(milliseconds: 500),
+        duration: Duration(milliseconds: 400),
       );
     });
 
