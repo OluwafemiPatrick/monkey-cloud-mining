@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:mcm/home/email_verification.dart';
 import 'package:mcm/home/referral_info_page.dart';
 import 'package:mcm/home/wrapper.dart';
 import 'package:mcm/services/auth.dart';

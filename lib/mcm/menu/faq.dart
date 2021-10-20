@@ -14,9 +14,9 @@ class FAQ extends StatelessWidget {
     String questionThree = 'Is there a withdrawal limit?';
     String ansThree = 'Yes, there is a minimum limit. Monkey Cloud Mining covers all transaction charges for withdrawals, therefore it makes sense to process transactions above a certain amount.';
     String questionFour = 'I have a complaint to make or need assistance with some things. How do I go about this?';
-    String ansFour = 'Kindly use the Contact Support feature on the previous page. You can also send us an email at support@mcm.com.\nYou will receive an automated response with a ticket number, and a representative of ours will respond to you within 24 hours.';
+    String ansFour = 'Kindly use the Contact Support feature on the previous page. You can also send us an email at support@monkeycloudmining.com \nYou will receive an automated response with a ticket number, and a representative of ours will respond to you within 24 hours.';
     String questionFive = 'Can I find Monkey Cloud Mining on social media?';
-    String ansFive = 'Yes, you can find us on social media by following the links below';
+    String ansFive = 'Yes, you can find us on social media by following the links on the previous page.';
 
     return Scaffold(
         appBar: PreferredSize(

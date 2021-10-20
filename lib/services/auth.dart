@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:mcm/services/firebase_services.dart';
 import 'package:mcm/shared/common_methods.dart';
+import 'package:mcm/shared/toast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -118,6 +119,11 @@ class MCMAuthService {
   }
 
 
+  Future forgotPassword(String email) async {
+    await _auth.sendPasswordResetEmail(email: email).then((value) {
+      toastMessage("Success: kindly check your email for recovery instructions");
+    });
+  }
 
   // sign out
   Future signOut() async {

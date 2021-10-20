@@ -133,6 +133,7 @@ class _HomeLogState extends State<HomeLog> {
     );
   }
 
+
   Widget showTransactionLog() {
     return Container(
       child: _isQuery2Complete ? Column(

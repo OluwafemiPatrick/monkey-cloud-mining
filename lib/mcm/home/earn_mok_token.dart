@@ -21,7 +21,8 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
   Timer _secTimer, _minTimer, _hourTimer;
   SharedPreferences prefs;
 
-  static int _totalDuration = 28799;
+ // static int _totalDuration = 28799;
+  static int _totalDuration = 10;
 
   String _mokEarningForActiveSession='0.0000', _currentTime;
   int _hour=0, _minutes=0, _seconds=0;
@@ -48,6 +49,7 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
     _hourTimer.cancel();
     _isMinRunning = false;
     _isHourRunning = false;
+
     myBanner.dispose();
     super.dispose();
   }
@@ -71,6 +73,7 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
     request: AdRequest(),
     listener: AdListener(),
   );
+
 
   final AdListener listener = AdListener(
     onAdLoaded: (Ad ad) => print('Ad loaded successfully.'),

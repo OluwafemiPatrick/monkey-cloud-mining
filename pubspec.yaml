@@ -26,6 +26,7 @@ dependencies:
   url_launcher: ^5.7.10
   connectivity: ^2.0.2
   pull_to_refresh: ^1.6.5
+  in_app_update: ^1.1.15
 
 
   # do not update any of these

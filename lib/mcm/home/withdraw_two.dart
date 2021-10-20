@@ -123,8 +123,7 @@ class WithdrawTokenTwo extends StatelessWidget {
     String currentTime = (ms / 1000).round().toString();
     var availableTokenBalance;
     var totalTokenWithdrawn;
-
-    // send withdrawal notification to mcm handler
+    
 
     // update details on user account
     profileRef.child("user_profile").child(prefs.getString("currentUser")).once().then((DataSnapshot snapshot) {
@@ -141,19 +140,6 @@ class WithdrawTokenTwo extends StatelessWidget {
       print ("ACCOUNT DETAILS UPDATED SUCCESSFULLY");
     });
 
-    // update details on mcm account
-    // profileRef.child("mcm_details").once().then((DataSnapshot snapshot) {
-    //   totalTokenWithdrawn = snapshot.value["totalWithdrawal"];
-    //   availableTokenBalance = snapshot.value["availableTokenBalance"];
-    // }).then((value) {
-    //   var newTotalTokenWithdrawn = double.parse(totalTokenWithdrawn) + double.parse(amount);
-    //   var newAvailableTokenBal = double.parse(availableTokenBalance) - double.parse(amount);
-    //   profileRef.child("mcm_details").update({
-    //     "totalWithdrawal" : newTotalTokenWithdrawn.toStringAsFixed(4),
-    //     "availableTokenBalance" : newAvailableTokenBal.toStringAsFixed(4),
-    //   });
-    //   print ("EXITING MOK BALANCE UPDATE METHOD");
-    // });
 
     // send withdrawal_log info to database
     profileRef.child("withdrawal").child(prefs.getString("currentUser")).child(currentTime).set({

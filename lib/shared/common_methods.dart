@@ -17,7 +17,6 @@ String getCurrentDate() {
 }
 
 
-
 void returnToHomePage(BuildContext context) {
   Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
     builder: (BuildContext context) => HomePage(),

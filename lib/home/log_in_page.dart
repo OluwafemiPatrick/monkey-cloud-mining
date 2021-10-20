@@ -1,13 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mcm/home/email_verification.dart';
 import 'package:mcm/services/auth.dart';
 import 'package:mcm/shared/common_methods.dart';
 import 'package:mcm/shared/constants.dart';
 import 'package:mcm/shared/spinner.dart';
 import 'package:mcm/shared/toast.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'wrapper.dart';
 
 
@@ -81,9 +79,11 @@ class _LogInPageState extends State<LogInPage> {
                   emailInput(),
                   passwordInput(),
                   GestureDetector(
-                    onTap: () {},
                     child: Text(' forgot password?',
                       style: TextStyle(fontSize: 14.0), textAlign: TextAlign.center,),
+                    onTap: () {
+                      passwordRecoveryPrompt(context);
+                    },
                   ),
                   SizedBox(height: 35.0,),
                   loginButton(),
@@ -211,7 +211,6 @@ class _LogInPageState extends State<LogInPage> {
             toastError('Sign in failed, please try again');
           }
           else if (result != null) {
-            returnToHomePage(context);
             Navigator.pushAndRemoveUntil(context,
               MaterialPageRoute(
                 builder: (BuildContext context) => Wrapper(),
@@ -226,24 +225,73 @@ class _LogInPageState extends State<LogInPage> {
     );
   }
 
-  // Future _checkVerificationStatus() async {
-  //   // this checks if user email is confirmed before signing in
-  //   User user = FirebaseAuth.instance.currentUser;
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   await user.reload();
-  //
-  //   if (user.emailVerified){
-  //     prefs.setString('isUserEmailVerified', 'true');
-  //     Navigator.pushAndRemoveUntil(
-  //       context, MaterialPageRoute(
-  //       builder: (BuildContext context) => Wrapper(),
-  //     ), (route) => false,
-  //     );
-  //   }
-  //   else{
-  //     Navigator.of(context).push(MaterialPageRoute(builder: (context) => EmailVerification(_email)));
-  //   }
-  // }
+
+  Future passwordRecoveryPrompt(BuildContext context){
+    final MCMAuthService _auth = new MCMAuthService();
+    String recoveryMail='';
+    return showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+            child: Container(
+              color: colorBgLighter,
+              padding: const EdgeInsets.all(10.0),
+              height: 240.0,
+              child: Column(
+                  children: <Widget>[
+                    SizedBox(height: 5.0),
+                    Text("Reset your password for Monkey Cloud Mining",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0, color: colorGold),
+                      textAlign: TextAlign.center,
+                    ),
+                    Spacer(flex: 2,),
+                    Container(
+                      height: 50.0,
+                      margin: EdgeInsets.symmetric(horizontal: 10.0),
+                      padding: const EdgeInsets.only(left: 20.0, top: 15.0),
+                      decoration: new BoxDecoration(
+                        color: Colors.transparent,
+                        border: Border.all(color: colorBlackLight),
+                      ),
+                      child: TextField(
+                        keyboardType: TextInputType.emailAddress,
+                        autofocus: false,
+                        decoration: InputDecoration(
+                          hintText: 'email address'
+                        ),
+                        onChanged: (value){
+                          setState(() => recoveryMail = value);
+                        },
+                      ),
+                    ),
+                    Spacer(flex: 3),
+                    Row(
+                        children: <Widget>[
+                          Spacer(flex: 1,),
+                          Container(
+                            height: 35.0,
+                            width: 80.0,
+                            child: TextButton(
+                                child: Text("Reset", style: TextStyle(fontSize: 15.0, color: colorGold),),
+                                onPressed: () async {
+                                  if (recoveryMail.isNotEmpty) {
+                                    Navigator.pop(context);
+                                    await _auth.forgotPassword(recoveryMail);
+                                  } else {
+                                    toastError("Kindly enter a valid email");
+                                  }
+                                }
+                            ),
+                          ),
+                        ]),
+                  ]),
+            ),
+          );
+        }
+    );
+  }
+
 
 
 }

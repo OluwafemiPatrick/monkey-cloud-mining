@@ -95,7 +95,7 @@ class _InviteAndEarnState extends State<InviteAndEarn> {
               child: Row(
                 children: [
                   SizedBox(width: 8.0),
-                  Text(_referralCode,
+                  Text(_referralCode!=null ? _referralCode : '',
                     style: TextStyle(color: colorWhite, fontSize: 13.0, fontWeight: FontWeight.normal),),
                   Spacer(flex: 1),
                   SizedBox(

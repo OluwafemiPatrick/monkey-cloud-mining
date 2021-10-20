@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mcm/mcm/home/invite_and_earn.dart';
-import 'package:mcm/mcm/home/mok_token_earning.dart';
+import 'package:mcm/mcm/home/earn_mok_token.dart';
 import 'package:mcm/mcm/home/stake_mok_token.dart';
 import 'package:mcm/mcm/home/withdraw_token.dart';
 import 'package:mcm/services/adhelper.dart';
@@ -20,8 +20,8 @@ import 'deposit_mok_token.dart';
 
 class HomeHome extends StatefulWidget {
 
-  final String miningSessionFromDB, dayCount, referralCode, mokTokenBalance;
-  HomeHome(this.miningSessionFromDB, this.dayCount, this.referralCode, this.mokTokenBalance);
+  final String dayCount, referralCode, mokTokenBalance;
+  HomeHome(this.dayCount, this.referralCode, this.mokTokenBalance);
 
   @override
   _HomeHomeState createState() => _HomeHomeState();
@@ -34,7 +34,7 @@ class _HomeHomeState extends State<HomeHome> {
 
   String _currentTime, _mokTokenBalance="0.0000";
   String _hour='', _min='', _referralCode='';
-  String _miningSessionFromDB='', _dayCount='';
+  String _dayCount='';
 
 
   @override
@@ -46,7 +46,6 @@ class _HomeHomeState extends State<HomeHome> {
 
   _fetchDataFromPreviousPage() {
     setState(() {
-      _miningSessionFromDB = widget.miningSessionFromDB;
       _dayCount = widget.dayCount;
       _mokTokenBalance = widget.mokTokenBalance;
       _referralCode = widget.referralCode;
@@ -290,9 +289,11 @@ class _HomeHomeState extends State<HomeHome> {
     Timer(Duration(seconds: 3), () {
       initState();
     });
-    setState(() {
-      usdEarning = double.parse(_mokTokenBalance) * 0.001;
-    });
+    if (_mokTokenBalance!=null) {
+      setState(() {
+        usdEarning = double.parse(_mokTokenBalance) * 0.001;
+      });
+    }
 
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -314,7 +315,7 @@ class _HomeHomeState extends State<HomeHome> {
                   height: 50.0,
                     width: 50.0,
                     child: Image.asset('assets/icons/logo.png'))),
-                Expanded(child: Text(_mokTokenBalance,
+                Expanded(child: Text(_mokTokenBalance!=null ? _mokTokenBalance : '0.0000',
                   style: TextStyle(fontSize: 24.0, color: colorWhite),
                   textAlign: TextAlign.center,
                 )),
@@ -352,18 +353,25 @@ class _HomeHomeState extends State<HomeHome> {
     );
   }
 
-  _pushLastMiningDetailsToDB() async {
-    prefs = await SharedPreferences.getInstance();
-    String lSession = prefs.getString("totalMiningSessions");
 
-    if (lSession != null) {
-      var localSession = double.parse(lSession);
-      var onlineSession = double.parse(_miningSessionFromDB);
+  _pushLastMiningDetailsToDB() async {
+    DatabaseReference profileRef = FirebaseDatabase.instance.reference();
+    prefs = await SharedPreferences.getInstance();
+    var localTotalMiningSession = prefs.getString("totalMiningSessions");
+    var miningSessionFromDB;
+
+    profileRef.child("user_profile").child(prefs.getString("currentUser")).once().then((DataSnapshot snapshot) {
+      miningSessionFromDB = snapshot.value["totalMiningSessions"];
+      int diff = int.parse(localTotalMiningSession) - int.parse(miningSessionFromDB);
+      print ("MINING SESSION FETCHED. Difference is : " + diff.toString() );
+    }).then((value) {
+      var localSession = double.parse(localTotalMiningSession);
+      var onlineSession = double.parse(miningSessionFromDB);
 
       if (localSession > onlineSession) {
         _updateMiningDataToDB();
       }
-    }
+    });
 
   }
 

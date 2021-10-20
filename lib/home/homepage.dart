@@ -4,6 +4,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:mcm/mcm/game/home_game.dart';
 import 'package:mcm/mcm/home/home_home.dart';
@@ -22,6 +23,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
 
   SharedPreferences prefs;
+  GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
 
   double _iconSize = 25.0;
   double _textSize = 12.0;
@@ -64,20 +66,16 @@ class _HomePageState extends State<HomePage> {
           height: MediaQuery.of(context).size.height,
           child: Stack(
             children: [
-              Column(
-                children: [
-                  Expanded(
-                    child: Visibility(
-                      visible: _isConnected,
-                      child: _switchNavigationButtons()
-                    ),
-                  ),
-                  bottomNavigationButtons(),
-                ],
+              Container(
+                child: Column(
+                  children: [
+                    Expanded(child: _switchNavigationButtons()),
+                    bottomNavigationButtons()
+                  ] ),
               ),
               _noConnectionDisplay(),
             ],
-          )
+          ),
       ),
     );
   }
@@ -95,7 +93,7 @@ class _HomePageState extends State<HomePage> {
       return HomeMenu(_referralCode);
     }
     else {
-      return HomeHome(_miningSessionFromDB, _dayCount, _referralCode, _mokTokenBalance);
+      return HomeHome(_dayCount, _referralCode, _mokTokenBalance);
     }
   }
 
@@ -266,6 +264,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _checkForUpdate() async {
+
+    if (Platform.isAndroid) {
+      InAppUpdate.checkForUpdate().then((info) {
+        AppUpdateInfo _updateInfo = info;
+        if (_updateInfo.updateAvailable == true) {
+          InAppUpdate.performImmediateUpdate();
+        }
+      }).catchError((e) => _showError(e));
+    }
+  }
+
+  void _showError(dynamic exception) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(exception.toString())));
+  }
+
 
   Future _fetchDataAndUpdateLoginTime() async {
     DatabaseReference profileRef = FirebaseDatabase.instance.reference().child("user_profile");
@@ -306,6 +320,7 @@ class _HomePageState extends State<HomePage> {
     if (connectivityResult==ConnectivityResult.mobile || connectivityResult==ConnectivityResult.wifi) {
       // I am connected to a network.
       setState(() => _isConnected = true);
+      _checkForUpdate();
       _fetchDataAndUpdateLoginTime();
     }
     else {

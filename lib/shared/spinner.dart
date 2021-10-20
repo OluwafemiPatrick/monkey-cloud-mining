@@ -3,6 +3,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import 'constants.dart';
 
+
 class Spinner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,6 @@ class Spinner extends StatelessWidget {
     );
   }
 }
-
 
 
 class SpinnerMain extends StatelessWidget {
