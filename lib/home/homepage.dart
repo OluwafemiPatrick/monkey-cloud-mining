@@ -90,10 +90,10 @@ class _HomePageState extends State<HomePage> {
       return HomeGame();
     }
     if (isMenuButton == true) {
-      return HomeMenu(_referralCode);
+      return HomeMenu(_referralCode, _mokTokenBalance);
     }
     else {
-      return HomeHome(_dayCount, _referralCode, _mokTokenBalance);
+      return HomeHome(_dayCount, _referralCode, _mokTokenBalance, _miningSessionFromDB);
     }
   }
 

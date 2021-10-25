@@ -8,6 +8,7 @@ import 'package:mcm/shared/common_methods.dart';
 import 'package:mcm/shared/constants.dart';
 import 'package:mcm/shared/getters_and_setters.dart';
 import 'package:mcm/shared/mcm_logo.dart';
+import 'package:mcm/shared/toast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MokTokenEarning extends StatefulWidget {
@@ -19,10 +20,9 @@ class MokTokenEarning extends StatefulWidget {
 class _MokTokenEarningState extends State<MokTokenEarning> {
 
   Timer _secTimer, _minTimer, _hourTimer;
-  SharedPreferences prefs;
 
- // static int _totalDuration = 28799;
-  static int _totalDuration = 10;
+  static int _totalDuration = 28799;
+ // static int _totalDuration = 10;
 
   String _mokEarningForActiveSession='0.0000', _currentTime;
   int _hour=0, _minutes=0, _seconds=0;
@@ -55,7 +55,7 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
   }
 
   _timerDisposedAt() async {
-    prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     var ms = (new DateTime.now()).microsecondsSinceEpoch;
     String currentTime = (ms / 1000).round().toString();
     if (isCounterActive == true) {
@@ -268,7 +268,7 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
   }
 
   _getTimeLine() async {
-    prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     var ms = (new DateTime.now()).microsecondsSinceEpoch;
 
     String currentTime = (ms / 1000).round().toString();
@@ -281,12 +281,10 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
         _isMinRunning = false;
         _isHourRunning = false;
       });
-      print ('METHOD ONE 1 EXECUTED');
       _calculateRemainingTime();
     }
 
     else {
-
       if (timerDisposedAt != null){
         int timeDiffV = int.parse(currentTime) - int.parse(timerDisposedAt);
         double timeDiffInSec = timeDiffV / 1000;
@@ -300,16 +298,12 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
             _isMinRunning = false;
             _isHourRunning = false;
           });
-          print ('METHOD TWO 2 EXECUTED');
-
           _calculateRemainingTime();
         }
         else if (timeLeftV < 0) {
           _updateTokenBalance();
           prefs.remove("counterValue");
           prefs.remove("timerDisposedAt");
-          print ('METHOD THREE 3 EXECUTED');
-
         }
       }
       else if (timerDisposedAt == null){
@@ -318,8 +312,6 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
           _isMinRunning = false;
           _isHourRunning = false;
         });
-        print ('METHOD FOUR 4 EXECUTED');
-
         _calculateRemainingTime();
       }
     }
@@ -391,7 +383,7 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
 
   _startTimer()  async {
     var secDuration = Duration(seconds: 1);
-    prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     isCounterActive = true;
 
     _secTimer = new Timer.periodic(secDuration, (timer) {
@@ -424,23 +416,22 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
 
   _getReferredByCode() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     var refCode = prefs.getString("referredByCode");
     print ("MY REFEREE REFERRAL CODE IS $refCode");
+
   }
 
 
   Future _updateTokenBalance() async {
     _currentTimeInSeconds();
     DatabaseReference profileRef = FirebaseDatabase.instance.reference();
-    prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
+    String userId = prefs.getString("currentUser");
     String totalBal = prefs.getString("tokenBalance");
     String numOfSessions = prefs.getString("totalMiningSessions");
     String totalTokenEarned = prefs.getString("totalTokenEarned");
 
-    var totalTokenMined;
-    var availableTokenBalance;
     var newBal = double.parse(totalBal) + (1000 / 3);
     var newNumOfSessions = int.parse(numOfSessions) + 1;
     var newTotalTokenEarned = double.parse(totalTokenEarned) + (1000 / 3);
@@ -449,7 +440,7 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
     prefs.setString("totalMiningSessions", newNumOfSessions.toString());
     prefs.setString("totalTokenEarned", newTotalTokenEarned.toStringAsFixed(4));
 
-    profileRef.child("user_profile").child(prefs.getString("currentUser")).update({
+    profileRef.child("user_profile").child(userId).update({
       "mokTokenBalance" : newBal.toStringAsFixed(4),
       "totalMiningSessions" : newNumOfSessions.toString(),
       "totalTokenEarned" : newTotalTokenEarned.toStringAsFixed(4),
@@ -457,22 +448,11 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
 
     _sendReferralBonus(newNumOfSessions.toString());
 
-    profileRef.child("stakes").child(prefs.getString("currentUser")).child(_currentTime).set({
+    profileRef.child("stakes").child(userId).child(_currentTime).set({
       "amount" : "333.3333",
       "time" : getCurrentTime(),
-    });
-
-    profileRef.child("mcm_details").once().then((DataSnapshot snapshot) {
-      totalTokenMined = snapshot.value["totalTokenMined"];
-      availableTokenBalance = snapshot.value["availableTokenBalance"];
     }).then((value) {
-      var newTotalTokenMined = double.parse(totalTokenMined) + 333.3333;
-      var newAvailableTokenBal = double.parse(availableTokenBalance) + 333.3333;
-      profileRef.child("mcm_details").update({
-        "totalTokenMined" : newTotalTokenMined.toStringAsFixed(4),
-        "availableTokenBalance" : newAvailableTokenBal.toStringAsFixed(4),
-      });
-      print ("EXITING BALANCE UPDATE METHOD");
+      toastMessage("Success: 333.3333 MOK earned");
     });
 
   }
@@ -482,72 +462,75 @@ class _MokTokenEarningState extends State<MokTokenEarning> {
     DatabaseReference refRef = FirebaseDatabase.instance.reference().child("referral_ids");
     DatabaseReference profileRef = FirebaseDatabase.instance.reference().child("user_profile");
 
-    prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     var refCode = prefs.getString("referredByCode");
 
-    if (totalMiningSession == '2') {
-      refRef.child(refCode).once().then((DataSnapshot snapshot) {
+    if (refCode != null) {
+      if (totalMiningSession == '2') {
+        refRef.child(refCode).once().then((DataSnapshot snapshot) {
 
-        String earned2Times = snapshot.value["users_earned_two"];
-        String refereeId = snapshot.value["myUserId"];
-        int earning = int.parse(earned2Times) + 1 ;
+          String earned2Times = snapshot.value["users_earned_two"];
+          String refereeId = snapshot.value["myUserId"];
+          int earning = int.parse(earned2Times) + 1 ;
 
-        refRef.child(refCode).update({
-          "users_earned_two" : earning.toString()
-        });
+          refRef.child(refCode).update({
+            "users_earned_two" : earning.toString()
+          });
 
-        profileRef.child(refereeId).once().then((DataSnapshot snapshot) {
-          String mokTokenBal = snapshot.value["mokTokenBalance"];
-          double newBal = double.parse(mokTokenBal) + 200;
+          profileRef.child(refereeId).once().then((DataSnapshot snapshot) {
+            String mokTokenBal = snapshot.value["mokTokenBalance"];
+            double newBal = double.parse(mokTokenBal) + 200;
 
-          profileRef.child(refereeId).update({
-            "mokTokenBalance" : newBal.toStringAsFixed(4),
+            profileRef.child(refereeId).update({
+              "mokTokenBalance" : newBal.toStringAsFixed(4),
+            });
           });
         });
-      });
-    }
-    else if (totalMiningSession == '5') {
-      refRef.child(refCode).once().then((DataSnapshot snapshot) {
+      }
+      if (totalMiningSession == '5') {
+        refRef.child(refCode).once().then((DataSnapshot snapshot) {
 
-        String earned5Times = snapshot.value["users_earned_five"];
-        String refereeId = snapshot.value["myUserId"];
-        int earning = int.parse(earned5Times) + 1 ;
+          String earned5Times = snapshot.value["users_earned_five"];
+          String refereeId = snapshot.value["myUserId"];
+          int earning = int.parse(earned5Times) + 1 ;
 
-        refRef.child(refCode).update({
-          "users_earned_five" : earning.toString()
-        });
+          refRef.child(refCode).update({
+            "users_earned_five" : earning.toString()
+          });
 
-        profileRef.child(refereeId).once().then((DataSnapshot snapshot) {
-          String mokTokenBal = snapshot.value["mokTokenBalance"];
-          double newBal = double.parse(mokTokenBal) + 500;
+          profileRef.child(refereeId).once().then((DataSnapshot snapshot) {
+            String mokTokenBal = snapshot.value["mokTokenBalance"];
+            double newBal = double.parse(mokTokenBal) + 500;
 
-          profileRef.child(refereeId).update({
-            "mokTokenBalance" : newBal.toStringAsFixed(4),
+            profileRef.child(refereeId).update({
+              "mokTokenBalance" : newBal.toStringAsFixed(4),
+            });
           });
         });
-      });
-    }
-    else if (totalMiningSession == '10') {
-      refRef.child(refCode).once().then((DataSnapshot snapshot) {
+      }
+      if (totalMiningSession == '10') {
+        refRef.child(refCode).once().then((DataSnapshot snapshot) {
 
-        String earned10Times = snapshot.value["users_earned_ten"];
-        String refereeId = snapshot.value["myUserId"];
-        int earning = int.parse(earned10Times) + 1 ;
+          String earned10Times = snapshot.value["users_earned_ten"];
+          String refereeId = snapshot.value["myUserId"];
+          int earning = int.parse(earned10Times) + 1 ;
 
-        refRef.child(refCode).update({
-          "users_earned_ten" : earning.toString()
-        });
+          refRef.child(refCode).update({
+            "users_earned_ten" : earning.toString()
+          });
 
-        profileRef.child(refereeId).once().then((DataSnapshot snapshot) {
-          String mokTokenBal = snapshot.value["mokTokenBalance"];
-          double newBal = double.parse(mokTokenBal) + 1000;
+          profileRef.child(refereeId).once().then((DataSnapshot snapshot) {
+            String mokTokenBal = snapshot.value["mokTokenBalance"];
+            double newBal = double.parse(mokTokenBal) + 1000;
 
-          profileRef.child(refereeId).update({
-            "mokTokenBalance" : newBal.toStringAsFixed(4),
+            profileRef.child(refereeId).update({
+              "mokTokenBalance" : newBal.toStringAsFixed(4),
+            });
           });
         });
-      });
+      }
     }
+
   }
 
 

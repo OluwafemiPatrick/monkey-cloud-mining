@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mcm/services/auth.dart';
@@ -5,6 +9,7 @@ import 'package:mcm/shared/common_methods.dart';
 import 'package:mcm/shared/constants.dart';
 import 'package:mcm/shared/spinner.dart';
 import 'package:mcm/shared/toast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'wrapper.dart';
 
@@ -88,6 +93,7 @@ class _LogInPageState extends State<LogInPage> {
                   SizedBox(height: 35.0,),
                   loginButton(),
                   Spacer(flex: 1,),
+                  loginWithGoogle(),
                 ]),
             ),
           )
@@ -165,8 +171,7 @@ class _LogInPageState extends State<LogInPage> {
                         });
                       },
                     ),
-                  ],
-                ),
+                  ] ),
               ),
             ),
             Container(
@@ -211,15 +216,49 @@ class _LogInPageState extends State<LogInPage> {
             toastError('Sign in failed, please try again');
           }
           else if (result != null) {
-            Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(
+            Timer(Duration(seconds: 5), () {
+              Navigator.pushAndRemoveUntil(
+                context, MaterialPageRoute(
                 builder: (BuildContext context) => Wrapper(),
               ), (route) => false,
-            );
+              );
+            });
           }
 
         } else {
           toastMessage('email and password cannot be empty');
+        }
+      },
+    );
+  }
+
+
+  Widget loginWithGoogle() {
+    final MCMAuthService _auth = MCMAuthService();
+    FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+    return ElevatedButton(
+      child: SizedBox(
+          height: 52.0,
+          width: MediaQuery.of(context).size.width,
+          child: Center(child: Text('Google Sign In', style: TextStyle(
+              color: colorGoogle  , fontSize: 18.0))
+          )),
+      style: ElevatedButton.styleFrom(
+        primary: colorWhite,
+        onSurface: Colors.grey,
+        shadowColor: colorBgMain,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+        elevation: 2,
+      ),
+      onPressed: () async {
+        dynamic user = await _auth.signInWithGoogle();
+
+        if (user != null) {
+          String email = _firebaseAuth.currentUser.email;
+          String userId = _firebaseAuth.currentUser.uid;
+
+          retrieveUserDataFromDB(userId, email);
         }
       },
     );
@@ -293,5 +332,37 @@ class _LogInPageState extends State<LogInPage> {
   }
 
 
+  Future retrieveUserDataFromDB (String userId, userEmail) async {
+    DatabaseReference profileRef = FirebaseDatabase.instance.reference().child("user_profile");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    profileRef.child(userId).once().then((DataSnapshot snapshot) {
+      prefs.setString("tokenBalance", snapshot.value["mokTokenBalance"]);
+      prefs.setString("totalMiningSessions", snapshot.value["totalMiningSessions"]);
+      prefs.setString("totalTokenEarned", snapshot.value["totalTokenEarned"]);
+      prefs.setString("referral_code", snapshot.value["referralCode"]);
+      prefs.setString("referredByCode", snapshot.value["referredByCode"]);
+      prefs.setString("currentUser", userId);
+      prefs.setInt("last_login", _getCurrentTime());
+      prefs.setString("userEmail", userEmail);
+
+      String currentSession = snapshot.value["currentSessionCounterValue"];
+      prefs.setInt("counterValue", int.parse(currentSession));
+
+      Timer(Duration(seconds: 3), () {
+        Navigator.pushAndRemoveUntil(
+          context, MaterialPageRoute(
+          builder: (BuildContext context) => Wrapper(),
+        ), (route) => false,
+        );
+      });
+    });
+  }
+
+
+  int _getCurrentTime() {
+    var ms = (new DateTime.now()).microsecondsSinceEpoch;
+    return (ms / 1000).round();
+  }
 
 }

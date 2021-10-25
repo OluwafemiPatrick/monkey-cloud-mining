@@ -8,9 +8,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:910770470676:android:3ab927de7a2c59f4c8cc01",
+        "mobilesdk_app_id": "1:910770470676:android:b0cd8c3067c36c4bc8cc01",
         "android_client_info": {
-          "package_name": "com.monkeycloudmining.app"
+          "package_name": "com.mcm.admin"
         }
       },
       "oauth_client": [
@@ -41,6 +41,51 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:910770470676:android:3ab927de7a2c59f4c8cc01",
+        "android_client_info": {
+          "package_name": "com.monkeycloudmining.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "910770470676-oqs0jol8thn8c8phv895nvvt7i44j0ot.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.monkeycloudmining.app",
+            "certificate_hash": "bc27efbedd943b0a5105489e2682b847977e8598"
+          }
+        },
+        {
+          "client_id": "910770470676-uec90j9usqs2roi4attn4u4n3atadq6t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJtEIwIsxdGGQ-edqlyUbXZoYwJYx8Fhs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "910770470676-uec90j9usqs2roi4attn4u4n3atadq6t.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "910770470676-smk0em8brsek8pjok0v0qanuluinpics.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.oopatrick.firebase.firebaseTest"
+              }
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-8265037961520877~2737048907"
     }
   ],
   "configuration_version": "1"

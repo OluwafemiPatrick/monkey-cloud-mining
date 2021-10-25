@@ -6,7 +6,7 @@ class AdHelper {
     if (Platform.isAndroid) {
       String testId = 'ca-app-pub-3940256099942544/6300978111';
       String androidId = 'ca-app-pub-8265037961520877/6775890903';
-      return testId;
+      return androidId;
     }
     else if (Platform.isIOS) {
       String testId = 'ca-app-pub-3940256099942544/2934735716';
@@ -23,7 +23,7 @@ class AdHelper {
     if (Platform.isAndroid) {
       String testId = 'ca-app-pub-3940256099942544/8691691433';
       String androidId = 'ca-app-pub-8265037961520877/3492000446';
-      return androidId;
+      return testId;
     }
     else if (Platform.isIOS) {
       String testId = 'ca-app-pub-3940256099942544/5135589807';
@@ -39,7 +39,7 @@ class AdHelper {
     if (Platform.isAndroid) {
       String testId = 'ca-app-pub-3940256099942544/5224354917';
       String androidId = 'ca-app-pub-8265037961520877/3332218345';
-      return androidId;
+      return testId;
     }
     else if (Platform.isIOS) {
       String testId = 'ca-app-pub-3940256099942544/1712485313';

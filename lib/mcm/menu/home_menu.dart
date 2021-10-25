@@ -1,22 +1,28 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mcm/home/wrapper.dart';
 import 'package:mcm/mcm/home/deposit_mok_token.dart';
 import 'package:mcm/mcm/home/invite_and_earn.dart';
 import 'package:mcm/mcm/home/stake_mok_token.dart';
 import 'package:mcm/mcm/menu/about_mcm.dart';
 import 'package:mcm/mcm/menu/calculator.dart';
 import 'package:mcm/mcm/menu/faq.dart';
+import 'package:mcm/mcm/menu/referral_update.dart';
 import 'package:mcm/services/auth.dart';
 import 'package:mcm/shared/constants.dart';
+import 'package:mcm/shared/toast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 
 class HomeMenu extends StatefulWidget {
 
-  final String referralCode;
-  HomeMenu(this.referralCode);
+  final String referralCode, mokEarning;
+  HomeMenu(this.referralCode, this.mokEarning);
 
   @override
   _HomeMenuState createState() => _HomeMenuState();
@@ -32,13 +38,14 @@ class _HomeMenuState extends State<HomeMenu> {
   final String appStoreLink = '';
   final String emailAddress = 'support@monkeycloudmining.com';
   final String bscScanUrl = 'https://bscscan.com/address/0x56871514686bdd3627729ed03fcd6da1d1dab1c5';
-  String referralCode = '';
+  String referralCode = '', mokEarning='';
 
 
   @override
   void initState() {
     setState(() {
       referralCode = widget.referralCode;
+      mokEarning = widget.mokEarning;
     });
     super.initState();
   }
@@ -56,8 +63,8 @@ class _HomeMenuState extends State<HomeMenu> {
             depositToken(),
             stakeMokToken(),
             calculator(),
-        //    mokTokenDetails(),
             inviteAndEarn(),
+            referralInfo(),
             contactSupport(),
             rateApp(),
             telegram(),
@@ -585,10 +592,60 @@ class _HomeMenuState extends State<HomeMenu> {
     );
   }
 
+  Widget referralInfo() {
+    return GestureDetector(
+      child: Container(
+        height: 45.0,
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Row(
+                  children: [
+                    SizedBox(
+                      width: 24.0,
+                        child: Icon(Icons.room_preferences_outlined, size: 22.0, color: colorPurple,)
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 15.0),
+                        child: Text('Enter referral info', style: TextStyle(
+                            fontSize: 15.0, color: colorWhite
+                        ),),
+                      ),
+                    ),
+                    SizedBox(
+                        width: 24.0,
+                        child: Icon(Icons.arrow_forward_ios, size: 18.0, color: colorWhite,)
+                    ),
+                  ] ),
+              Divider(color: colorBlue, height: 0.5,)
+            ] ),
+      ),
+      onTap: () async {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        String _isReferralDone = prefs.getString("isReferralDone");
+        if (_isReferralDone == "true") setState(() {
+          Get.to(
+            ReferralUploadPage(mokEarning),
+            transition: Transition.rightToLeft,
+            duration: Duration(milliseconds: animationDuration),
+          );
+        });
+        else {
+          toastMessage('you have been referred already');
+        }
 
 
-  Future logoutDialog(BuildContext context){
+      } ,
+    );
+  }
+
+
+  Future logoutDialog(BuildContext context) async {
     final MCMAuthService _auth = new MCMAuthService();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    DatabaseReference dBRef = FirebaseDatabase.instance.reference().child("user_profile");
+
     return showDialog(
         context: context,
         builder: (BuildContext context){
@@ -625,9 +682,18 @@ class _HomeMenuState extends State<HomeMenu> {
                                 child: Text("Yes, logout", style: TextStyle(fontSize: 15.0, color: colorWhite),),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                                 color: Colors.transparent,
-                                onPressed: () async {
+                                onPressed: () {
                                   Navigator.pop(context);
-                                  await _auth.signOut();
+                                  String userId = prefs.getString('currentUser');
+                                  String currentSessionCounterValue = prefs.getInt('counterValue').toString();
+
+                                  // if (currentSessionCounterValue != null) {
+                                  //   dBRef.child(userId).update({
+                                  //     "currentSessionCounterValue" : currentSessionCounterValue,
+                                  //   });
+                                  // }
+                                  _auth.signOut();
+
                                 }
                             ),
                           ),
@@ -645,6 +711,21 @@ class _HomeMenuState extends State<HomeMenu> {
     } else {
       throw 'Could not launch $url';
     }
+  }
+
+
+  Future uploadCurrentMiningSessionToDB(String currentSessionCounterValue) async {
+
+    DatabaseReference dBRef = FirebaseDatabase.instance.reference().child("user_profile");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userId = prefs.getString('currentUser');
+
+    dBRef.child(userId).update({
+      "currentSessionCounterValue" : currentSessionCounterValue,
+    }).then((value) {
+
+    });
+
   }
 
 

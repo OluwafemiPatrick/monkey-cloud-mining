@@ -20,8 +20,8 @@ import 'deposit_mok_token.dart';
 
 class HomeHome extends StatefulWidget {
 
-  final String dayCount, referralCode, mokTokenBalance;
-  HomeHome(this.dayCount, this.referralCode, this.mokTokenBalance);
+  final String dayCount, referralCode, mokTokenBalance, miningSessionFromDB;
+  HomeHome(this.dayCount, this.referralCode, this.mokTokenBalance, this.miningSessionFromDB);
 
   @override
   _HomeHomeState createState() => _HomeHomeState();
@@ -30,7 +30,10 @@ class HomeHome extends StatefulWidget {
 class _HomeHomeState extends State<HomeHome> {
 
   SharedPreferences prefs;
+
   int _pageTransition = 200;
+  int maxFailedLoadAttempts = 3;
+
 
   String _currentTime, _mokTokenBalance="0.0000";
   String _hour='', _min='', _referralCode='';
@@ -41,21 +44,15 @@ class _HomeHomeState extends State<HomeHome> {
   void initState() {
     _fetchDataFromPreviousPage();
     myBanner.load();
+    myRewarded.load();
     super.initState();
   }
 
-  _fetchDataFromPreviousPage() {
-    setState(() {
-      _dayCount = widget.dayCount;
-      _mokTokenBalance = widget.mokTokenBalance;
-      _referralCode = widget.referralCode;
-    });
-    _pushLastMiningDetailsToDB();
-  }
 
   @override
   void dispose() {
     myBanner.dispose();
+    myRewarded.dispose();
     super.dispose();
   }
 
@@ -66,7 +63,19 @@ class _HomeHomeState extends State<HomeHome> {
     listener: AdListener(),
   );
 
-  final AdListener listener = AdListener(
+  final RewardedAd myRewarded = RewardedAd(
+    adUnitId: AdHelper.rewardedAdUnitId,
+    request: AdRequest(),
+    listener: AdListener(
+      onRewardedAdUserEarnedReward: (RewardedAd ad, RewardItem reward) {
+        print(reward.type);
+        print(reward.amount);
+      },
+    ),
+  );
+
+
+  final AdListener listenerB = AdListener(
     onAdLoaded: (Ad ad) => print('Ad loaded successfully.'),
     onAdFailedToLoad: (Ad ad, LoadAdError error) {
       print('Ad failed to load: $error');
@@ -75,6 +84,25 @@ class _HomeHomeState extends State<HomeHome> {
     onAdClosed: (Ad ad) => print('Ad closed.'),
     onApplicationExit: (Ad ad) => print('Left application.'),
   );
+
+  final AdListener listenerR = AdListener(
+    onAdLoaded: (Ad ad) => print('Ad loaded.'),
+    onAdFailedToLoad: (Ad ad, LoadAdError error) {
+      ad.dispose();
+      print('Ad failed to load: $error');
+    },
+    onAdOpened: (Ad ad) => print('Ad opened.'),
+    onAdClosed: (Ad ad) {
+      ad.dispose();
+      print('Ad closed.');
+    },
+    onApplicationExit: (Ad ad) => print('Left application.'),
+    onRewardedAdUserEarnedReward: (RewardedAd ad, RewardItem reward) {
+      print('REWARD EARNED: $reward');
+      // user reward goes here
+    },
+  );
+
 
 
   @override
@@ -123,7 +151,7 @@ class _HomeHomeState extends State<HomeHome> {
 
   Widget buttonDisplay() {
     return Container(
-      height: 150.0,
+      height: 165.0,
       padding: EdgeInsets.symmetric(horizontal: 4.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -138,7 +166,7 @@ class _HomeHomeState extends State<HomeHome> {
                       Icon(Icons.api_outlined, size: 18.0, color: colorWhite),
                       SizedBox(width: 6.0),
                       Expanded(
-                        child: Text('Deposit MOK token', style: TextStyle(
+                        child: Text('Deposit MOK', style: TextStyle(
                             color: colorWhite, fontSize: 13.0),),
                       ),
                     ],),
@@ -168,7 +196,7 @@ class _HomeHomeState extends State<HomeHome> {
                       Icon(Icons.gavel_outlined, size: 18.0, color: colorWhite),
                       SizedBox(width: 6.0),
                       Expanded(
-                        child: Text('Stake MOK token', style: TextStyle(
+                        child: Text('Stake MOK', style: TextStyle(
                             color: colorWhite, fontSize: 13.0),),
                       ),
                     ],),
@@ -226,7 +254,7 @@ class _HomeHomeState extends State<HomeHome> {
                     children: [
                       Icon(Icons.open_with_outlined, size: 18.0, color: colorWhite),
                       SizedBox(width: 6.0),
-                      Text('Withdraw token', style: TextStyle(
+                      Text('Withdraw MOK', style: TextStyle(
                           color: colorWhite, fontSize: 13.0),),
                     ],),
                   style: ElevatedButton.styleFrom(
@@ -274,14 +302,30 @@ class _HomeHomeState extends State<HomeHome> {
             Expanded(
               child: Container(
                 height: 45.0,
-                child: null,
+                child: ElevatedButton(
+                  child: Row(
+                    children: [
+                      Icon(Icons.stairs_outlined, size: 18.0, color: colorWhite),
+                      SizedBox(width: 6.0),
+                      Text('Daily Quest', style: TextStyle(
+                          color: colorWhite, fontSize: 13.0),),
+                    ],),
+                  style: ElevatedButton.styleFrom(
+                    primary: colorBgLighter,
+                    onSurface: colorBlue,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                    elevation: 2,
+                  ),
+                  onPressed: () {
+                    myRewarded.show();
+                  },
+                ),
               ),
-            )
+            ),
           ]),
         ]),
     );
   }
-
 
   Widget accountBalance() {
     double usdEarning = 0.0;
@@ -354,134 +398,6 @@ class _HomeHomeState extends State<HomeHome> {
   }
 
 
-  _pushLastMiningDetailsToDB() async {
-    DatabaseReference profileRef = FirebaseDatabase.instance.reference();
-    prefs = await SharedPreferences.getInstance();
-    var localTotalMiningSession = prefs.getString("totalMiningSessions");
-    var miningSessionFromDB;
-
-    profileRef.child("user_profile").child(prefs.getString("currentUser")).once().then((DataSnapshot snapshot) {
-      miningSessionFromDB = snapshot.value["totalMiningSessions"];
-      int diff = int.parse(localTotalMiningSession) - int.parse(miningSessionFromDB);
-      print ("MINING SESSION FETCHED. Difference is : " + diff.toString() );
-    }).then((value) {
-      var localSession = double.parse(localTotalMiningSession);
-      var onlineSession = double.parse(miningSessionFromDB);
-
-      if (localSession > onlineSession) {
-        _updateMiningDataToDB();
-      }
-    });
-
-  }
-
-  _updateMiningDataToDB() {
-    _currentTimeInSeconds();
-    DatabaseReference profileRef = FirebaseDatabase.instance.reference();
-
-    String totalBal = prefs.getString("tokenBalance");
-    String numOfSessions = prefs.getString("totalMiningSessions");
-    String totalTokenEarned = prefs.getString("totalTokenEarned");
-
-    profileRef.child("user_profile").child(prefs.getString("currentUser")).update({
-      "mokTokenBalance" : totalBal,
-      "totalMiningSessions" : numOfSessions,
-      "totalTokenEarned" : totalTokenEarned,
-    });
-
-    _sendReferralBonus(numOfSessions);
-
-    profileRef.child("stakes").child(prefs.getString("currentUser")).child(_currentTime).set({
-      "amount" : "333.3333",
-      "time" : getCurrentTime(),
-    });
-
-  }
-
-  _currentTimeInSeconds() {
-    var ms = (new DateTime.now()).microsecondsSinceEpoch;
-    String currentTime = (ms / 1000).round().toString();
-    setState(() => _currentTime = currentTime);
-  }
-
-  _onRefresh() {
-    returnToHomePage(context);
-  }
-
-  _dailyRewardUpdate() async {
-    prefs = await SharedPreferences.getInstance();
-    var ms = (new DateTime.now()).microsecondsSinceEpoch;
-
-    int time24 = 86400000;
-    //int time24 = 5000;
-
-    int currentTime = (ms / 1000).round();
-    int lastLogin = prefs.getInt("last_login");
-    int timeBetweenLogin = currentTime - lastLogin;
-    double timeLeft = (time24-timeBetweenLogin) / 1000;
-
-    _calculateTimestamp(timeLeft);
-
-    int dailyCount = int.parse(_dayCount);
-
-    if (timeBetweenLogin > time24) {
-      if (timeBetweenLogin < (time24 * 2)) {
-        int newCount = dailyCount + 1;
-        if (newCount < 7) {
-          // add 100 MOK
-          _dailyCheckIn(context, true, newCount, 100.0000);
-          prefs.setInt("last_login", currentTime);
-          print ('METHOD ONE 1 CALLED');
-        }
-        if (newCount>6 && newCount<14) {
-          // add 200 MOK
-          _dailyCheckIn(context, true, newCount, 200.0000);
-          prefs.setInt("last_login", currentTime);
-          print ('METHOD TWO 2 CALLED');
-        }
-        if (newCount>13 && newCount<21) {
-          // add 300 MOK
-          _dailyCheckIn(context, true, newCount, 300.0000);
-          prefs.setInt("last_login", currentTime);
-          print ('METHOD THREE 3 CALLED');
-        }
-        if (newCount>20 && newCount<30) {
-          // add 400 MOK
-          _dailyCheckIn(context, true, newCount, 400.0000);
-          prefs.setInt("last_login", currentTime);
-          print ('METHOD FOUR 4 CALLED');
-        }
-        if (newCount == 30) {
-          // add 500 MOK
-          _dailyCheckIn(context, true, newCount, 500.0000);
-          prefs.setInt("last_login", currentTime);
-          print ('METHOD FIVE 5 CALLED');
-        }
-        if (newCount > 30) {
-          // reset daily_count
-          _dailyCheckIn(context, true, 1, 100.00000);
-          prefs.setInt("last_login", currentTime);
-          print ('METHOD SIX 6 CALLED');
-        }
-      }
-      else {
-        // reset daily_counter and add 100 MOK
-        _dailyCheckIn(context, true, 1, 100.0000);
-        prefs.setInt("last_login", currentTime);
-        print ('METHOD SEVEN 7 CALLED');
-      }
-    }
-    if (lastLogin == null || lastLogin == 0) {
-      _dailyCheckIn(context, true, 1, 100);
-      prefs.setInt("last_login", currentTime);
-    }
-    else {
-      // add 0 MOK
-      _dailyCheckIn(context, false, dailyCount, 0.0000);
-      print ('METHOD EIGHT 8 CALLED');
-    }
-
-  }
 
 
   Future _sendReferralBonus(String totalMiningSession) async {
@@ -567,7 +483,7 @@ class _HomeHomeState extends State<HomeHome> {
               padding: const EdgeInsets.all(10.0),
               height: 180.0,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     SizedBox(height: 5.0),
                     isCheckValid ? _validDisplayCon(dayCount, mokAmount.toStringAsFixed(0)) : _invalidDisplayCon(),
@@ -596,44 +512,6 @@ class _HomeHomeState extends State<HomeHome> {
     );
   }
 
-  _validDisplayCon(int dayCount, String mokAmount) {
-    String _mssg = 'Congrats! You have earned $mokAmount MOK for checking in today. Come back tomorrow for more';
-    return Column(
-      children: [
-        Text('Day $dayCount reward', style: TextStyle(fontSize: 16.0, color: colorGold, fontWeight: FontWeight.bold),),
-        Padding(
-          padding: const EdgeInsets.only(top: 20.0, left: 5.0, right: 5.0),
-          child: Text(_mssg, style: TextStyle(fontSize: 13.0, color: colorWhite), textAlign: TextAlign.center,),
-        )
-      ],
-    );
-  }
-
-  _invalidDisplayCon() {
-    String _mssg = 'You have claimed today\'s reward.\nCome back in $_hour hr $_min min to earn more.';
-    return Column(
-      children: [
-        Text('Oops!', style: TextStyle(fontSize: 16.0, color: colorGold, fontWeight: FontWeight.bold),),
-        Padding(
-          padding: const EdgeInsets.only(top: 20.0, left: 5.0, right: 5.0),
-          child: Text(_mssg, style: TextStyle(fontSize: 13.0, color: colorWhite), textAlign: TextAlign.center,),
-        )
-      ]);
-  }
-
-  _sendCheckInRewardToDB(double amount, int dayCount) async {
-    DatabaseReference profileRef = FirebaseDatabase.instance.reference().child("user_profile");
-    prefs = await SharedPreferences.getInstance();
-
-    double newMokTokenBalance = double.parse(_mokTokenBalance) + amount;
-    prefs.setString("tokenBalance", newMokTokenBalance.toStringAsFixed(4));
-
-    profileRef.child(prefs.getString("currentUser")).update({
-      "mokTokenBalance" : newMokTokenBalance.toStringAsFixed(4),
-      "dayCount" : dayCount.toString(),
-    });
-  }
-
   _calculateTimestamp(double timestamp) {
     var hourLeft = (timestamp ~/ 3600).toString();
 
@@ -652,6 +530,188 @@ class _HomeHomeState extends State<HomeHome> {
         _min = minutesLeft;
       });
     }
+  }
+
+
+  _currentTimeInSeconds() {
+    var ms = (new DateTime.now()).microsecondsSinceEpoch;
+    String currentTime = (ms / 1000).round().toString();
+    setState(() => _currentTime = currentTime);
+  }
+
+
+  _dailyRewardUpdate() async {
+    prefs = await SharedPreferences.getInstance();
+    var ms = (new DateTime.now()).microsecondsSinceEpoch;
+
+    //int time24 = 86400000;
+    int time24 = 5000;
+
+    int currentTime = (ms / 1000).round();
+    int lastLogin = prefs.getInt("last_login");
+    int timeBetweenLogin = currentTime - lastLogin;
+    print ("TIME BETWEEN LOGIN IS : " + timeBetweenLogin.toString());
+    double timeLeft = (time24-timeBetweenLogin) / 1000;
+
+    _calculateTimestamp(timeLeft);
+
+    int dailyCount = int.parse(_dayCount);
+
+    if (timeBetweenLogin > time24) {
+      if (timeBetweenLogin < (time24 * 2)) {
+        int newCount = dailyCount + 1;
+        if (newCount < 7) {
+          // add 100 MOK
+          _dailyCheckIn(context, true, newCount, 100.0000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD ONE 1 CALLED');
+        }
+        if (newCount>6 && newCount<14) {
+          // add 200 MOK
+          _dailyCheckIn(context, true, newCount, 200.0000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD TWO 2 CALLED');
+        }
+        if (newCount>13 && newCount<21) {
+          // add 300 MOK
+          _dailyCheckIn(context, true, newCount, 300.0000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD THREE 3 CALLED');
+        }
+        if (newCount>20 && newCount<30) {
+          // add 400 MOK
+          _dailyCheckIn(context, true, newCount, 400.0000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD FOUR 4 CALLED');
+        }
+        if (newCount == 30) {
+          // add 500 MOK
+          _dailyCheckIn(context, true, newCount, 500.0000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD FIVE 5 CALLED');
+        }
+        if (newCount > 30) {
+          // reset daily_count
+          _dailyCheckIn(context, true, 1, 100.00000);
+          prefs.setInt("last_login", currentTime);
+          print ('METHOD SIX 6 CALLED');
+        }
+      }
+      else {
+        // reset daily_counter and add 100 MOK
+        _dailyCheckIn(context, true, 1, 100.0000);
+        prefs.setInt("last_login", currentTime);
+        print ('METHOD SEVEN 7 CALLED');
+      }
+    }
+    if (lastLogin == null || lastLogin == 0) {
+      _dailyCheckIn(context, true, 1, 100);
+      prefs.setInt("last_login", currentTime);
+    }
+    else {
+      // add 0 MOK
+      _dailyCheckIn(context, false, dailyCount, 0.0000);
+      print ('METHOD EIGHT 8 CALLED');
+    }
+
+  }
+
+  _fetchDataFromPreviousPage() {
+    setState(() {
+      _dayCount = widget.dayCount;
+      _mokTokenBalance = widget.mokTokenBalance;
+      _referralCode = widget.referralCode;
+    });
+    _pushLastMiningDetailsToDB(widget.miningSessionFromDB);
+  }
+
+  _invalidDisplayCon() {
+    String _mssg = 'You have claimed today\'s reward.\nCome back in $_hour hr $_min min to earn more.';
+    return Column(
+        children: [
+          Text('Oops!', style: TextStyle(fontSize: 16.0, color: colorGold, fontWeight: FontWeight.bold),),
+          Padding(
+            padding: const EdgeInsets.only(top: 20.0, left: 5.0, right: 5.0),
+            child: Text(_mssg, style: TextStyle(fontSize: 13.0, color: colorWhite), textAlign: TextAlign.center,),
+          )
+        ]);
+  }
+
+  _onRefresh() {
+    returnToHomePage(context);
+  }
+
+  _pushLastMiningDetailsToDB(String miningSessionFromDB) async {
+    DatabaseReference profileRef = FirebaseDatabase.instance.reference();
+    prefs = await SharedPreferences.getInstance();
+    var localTotalMiningSession = prefs.getString("totalMiningSessions");
+
+    profileRef.child("user_profile").child(prefs.getString("currentUser")).once().then((DataSnapshot snapshot) {
+      miningSessionFromDB = snapshot.value["totalMiningSessions"];
+      int diff = int.parse(localTotalMiningSession) - int.parse(miningSessionFromDB);
+      print ("MINING SESSION FETCHED. Difference is : " + diff.toString() );
+    }).then((value) {
+      var localSession = double.parse(localTotalMiningSession);
+      var onlineSession = double.parse(miningSessionFromDB);
+
+      if (localSession > onlineSession) {
+        _updateMiningDataToDB();
+      }
+    });
+
+  }
+
+  _sendCheckInRewardToDB(double amount, int dayCount) async {
+    DatabaseReference profileRef = FirebaseDatabase.instance.reference().child("user_profile");
+    prefs = await SharedPreferences.getInstance();
+
+    double newMokTokenBalance = double.parse(_mokTokenBalance) + amount;
+    prefs.setString("tokenBalance", newMokTokenBalance.toStringAsFixed(4));
+
+    profileRef.child(prefs.getString("currentUser")).update({
+      "mokTokenBalance" : newMokTokenBalance.toStringAsFixed(4),
+      "dayCount" : dayCount.toString(),
+    }).then((value) {
+      setState(() => _mokTokenBalance = newMokTokenBalance.toStringAsFixed(4));
+    });
+  }
+
+  _updateMiningDataToDB() async {
+    prefs = await SharedPreferences.getInstance();
+    DatabaseReference profileRef = FirebaseDatabase.instance.reference();
+    _currentTimeInSeconds();
+
+    String userId = prefs.getString("currentUser");
+    String totalBal = prefs.getString("tokenBalance");
+    String numOfSessions = prefs.getString("totalMiningSessions");
+    String totalTokenEarned = prefs.getString("totalTokenEarned");
+
+    profileRef.child("user_profile").child(userId).update({
+      "mokTokenBalance" : totalBal,
+      "totalMiningSessions" : numOfSessions,
+      "totalTokenEarned" : totalTokenEarned,
+    });
+
+    _sendReferralBonus(numOfSessions);
+
+    profileRef.child("stakes").child(userId).child(_currentTime).set({
+      "amount" : "333.3333",
+      "time" : getCurrentTime(),
+    });
+
+  }
+
+  _validDisplayCon(int dayCount, String mokAmount) {
+    String _mssg = 'Congrats! You have earned $mokAmount MOK for checking in today. Come back tomorrow for more';
+    return Column(
+      children: [
+        Text('Day $dayCount reward', style: TextStyle(fontSize: 16.0, color: colorGold, fontWeight: FontWeight.bold),),
+        Padding(
+          padding: const EdgeInsets.only(top: 20.0, left: 5.0, right: 5.0),
+          child: Text(_mssg, style: TextStyle(fontSize: 13.0, color: colorWhite), textAlign: TextAlign.center,),
+        )
+      ],
+    );
   }
 
 

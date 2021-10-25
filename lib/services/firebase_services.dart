@@ -6,14 +6,13 @@ class FirebaseServices {
 
   SharedPreferences prefs;
 
-  Future uploadProfileDetailsToDB(String fullName, email, password, userId, accountCreationDate,
+  Future updateProfileDetailsInDB(String fullName, email, password, userId, accountCreationDate,
       lastLogin, bnbAddress, mokTokenBalance, referralCode, referredByCode, referredByUserId, totalMiningSessions,
       totalTokenEarned, totalTokenWithdrawn, totalTokenStaked, totalTokenDeposit, dayCount) async {
 
-    prefs = await SharedPreferences.getInstance();
     DatabaseReference profileDatabase = FirebaseDatabase.instance.reference().child("user_profile");
 
-    profileDatabase.child(prefs.getString("currentUser")).set({
+    profileDatabase.child(userId).update({
       "fullName" : fullName,
       "email" : email,
       "password" : password,
@@ -31,6 +30,37 @@ class FirebaseServices {
       "totalTokenStaked" : totalTokenStaked,
       "totalTokenDeposit" : totalTokenDeposit,
       "dayCount" : dayCount,
+      "currentSessionCounterValue" : '0',
+    });
+  }
+
+
+
+  Future uploadDefaultDetailsToDB(String fullName, email, password, userId, accountCreationDate,
+      lastLogin, bnbAddress, mokTokenBalance, referralCode, referredByCode, referredByUserId, totalMiningSessions,
+      totalTokenEarned, totalTokenWithdrawn, totalTokenStaked, totalTokenDeposit, dayCount) async {
+
+    DatabaseReference profileDatabase = FirebaseDatabase.instance.reference().child("user_profile");
+
+    profileDatabase.child(userId).set({
+      "fullName" : fullName,
+      "email" : email,
+      "password" : password,
+      "userId" : userId,
+      "accountCreationDate" : accountCreationDate,
+      "lastLogin" : lastLogin,
+      "bnbAddress" : bnbAddress,
+      "mokTokenBalance" : mokTokenBalance,
+      "referralCode" : referralCode,
+      "referredByCode" : referredByCode,
+      "referredByUserId" : referredByUserId,
+      "totalMiningSessions" : totalMiningSessions,
+      "totalTokenEarned" : totalTokenEarned,
+      "totalTokenWithdrawn" : totalTokenWithdrawn,
+      "totalTokenStaked" : totalTokenStaked,
+      "totalTokenDeposit" : totalTokenDeposit,
+      "dayCount" : dayCount,
+      "currentSessionCounterValue" : '0',
     });
   }
 
