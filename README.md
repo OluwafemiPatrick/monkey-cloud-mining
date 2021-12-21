@@ -1,6 +1,6 @@
 ## Monkey Cloud Mining
 
-Monkey Cloud Mining (MCM) is designed to provide a simple user experience and platform that allows all users to fully engage in the emerging cryptocurrency economy, regardless of technical aptitude.
+Monkey Cloud Mining (MCM) is an open-source project designed to provide a simple user experience and platform that allows all users to fully engage in the emerging cryptocurrency economy, regardless of technical aptitude.
 
 To sign in and connect with the Monkey Cloud Mining server, the program requires an internet connection. To connect, simply click "Start Mining" and leave the mining procedure to the server. You can simply close the app, or entertain yourself with the fantasy game that we have developed for you.
 
